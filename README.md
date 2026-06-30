@@ -1,5 +1,7 @@
 # Bangalore Open Data Mining
 
+> **Source of truth: this GitHub repo** (https://github.com/Tinker31415/bangalore-open-data-mining). Make changes here via clone/commit/push; the local Claude Workspace copy is a snapshot.
+
 An umbrella for civic open-data projects on Bengaluru (and comparison cities), turning public datasets into interactive dashboards that drive awareness and action on urban quality of life.
 
 ## Subprojects

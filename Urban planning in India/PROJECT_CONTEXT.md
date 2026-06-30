@@ -6,6 +6,25 @@ _Last updated: June 2026. Subproject of **Bangalore Open Data Mining**._
 
 ---
 
+## ⚙ Working model — GitHub is the source of truth
+
+**As of June 2026, all new changes live on GitHub:**
+https://github.com/Tinker31415/bangalore-open-data-mining
+
+- The **canonical copy is the GitHub repo**. Make changes by cloning, editing, committing and pushing — **not** by editing the local *Claude Workspace* copy (now treated as a possibly-stale snapshot).
+- Typical flow:
+  ```bash
+  git clone https://github.com/Tinker31415/bangalore-open-data-mining.git
+  cd "bangalore-open-data-mining/Urban planning in India"
+  # edit files, then if data changed:
+  node pipeline/refresh.js
+  git add -A && git commit -m "describe change" && git push
+  ```
+- Live Cowork artifacts are published snapshots; re-publish them from the repo's HTML when their data changes.
+- Do not resume by editing files under `Downloads/Claude Workspace` — pull from GitHub first.
+
+---
+
 ## ▶ Resume here (current state)
 
 **Artifacts (all live + on disk, self-contained HTML):**
