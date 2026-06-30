@@ -1,0 +1,80 @@
+{
+  "_note": "Registry of data sources. Add an entry here to feed new data into the dashboards. type = manual | csv | api. Set enabled:true to activate. After editing, run: node pipeline/refresh.js  (fetch + merge + build). The three examples below are disabled templates — copy and adapt them.",
+
+  "sources": [
+    {
+      "id": "bengaluru_traffic_police_deaths",
+      "name": "Bengaluru road deaths (Bengaluru Traffic Police, via OpenCity)",
+      "type": "manual",
+      "enabled": true,
+      "updates": {
+        "livability_data.roadDeaths": {
+          "years": ["2022", "2023", "2024"],
+          "deaths": [772, 921, 893],
+          "asOf": "2024",
+          "source": "Bengaluru Traffic Police (via OpenCity)"
+        }
+      },
+      "note": "NEW traffic source. City road-crash deaths 772/921/893 (2022-24); pedestrian deaths -23% in 2024. Live-ready via the OpenCity 'Bengaluru road accidents' dataset / btp.gov.in.",
+      "lastUpdated": null
+    },
+    {
+      "id": "bengaluru_congestion_cost",
+      "name": "Bengaluru congestion economic cost (Karnataka govt / studies)",
+      "type": "manual",
+      "enabled": true,
+      "updates": { "livability_data.congestionCostCr": 20000 },
+      "note": "NEW traffic source. Estimated ~Rs 20,000 crore/year lost to congestion (time, fuel, productivity).",
+      "lastUpdated": null
+    },
+    {
+      "id": "bengaluru_air_quality",
+      "name": "Bengaluru air quality — PM2.5 (Statista/IQAir, Dec 2024)",
+      "type": "manual",
+      "enabled": true,
+      "updates": {
+        "livability_data.airQuality": {
+          "cities": ["Bengaluru", "Mumbai", "Kolkata"],
+          "pm25": [34.33, 64.33, 92.64],
+          "indiaStandard": 40,
+          "whoGuideline": 5,
+          "asOf": "Dec 2024",
+          "source": "Statista / IQAir"
+        }
+      },
+      "note": "NEW source wired up as a working proof. Real values retrieved from Statista/IQAir (Dec 2024 monthly PM2.5). For ongoing live updates, enable the OpenAQ api source below.",
+      "lastUpdated": null
+    },
+    {
+      "id": "openaq_bengaluru_pm25_live",
+      "name": "OpenAQ — Bengaluru PM2.5 (live API)",
+      "type": "api",
+      "enabled": false,
+      "url": "https://api.openaq.org/v3/locations?coordinates=12.9716,77.5946&radius=25000",
+      "headers": { "X-API-Key": "PUT-YOUR-OPENAQ-KEY-HERE" },
+      "adapter": "openaqAir",
+      "note": "Live path for the same metric. Get a free key at openaq.org, verify the response shape, finish the mapping in adapters.js (openaqAir), then set enabled:true.",
+      "lastUpdated": null
+    },
+    {
+      "id": "bmtc_ridership_trend",
+      "name": "BMTC daily ridership trend (OpenCity/CAG, Deccan Herald)",
+      "type": "manual",
+      "enabled": true,
+      "updates": {
+        "mobility_data.busRidership": {
+          "periods": ["Pre-COVID (2017–20)", "COVID (2020–22)", "Post-Shakti (2024–25)"],
+          "lakh": [37.5, 14.4, 45.5],
+          "asOf": "2025",
+          "source": "OpenCity / CAG / Deccan Herald"
+        }
+      },
+      "note": "NEW source. Real figures: pre-COVID avg 37.5 lakh/day, COVID trough 14.4, record 45.5 lakh post-Shakti. Live-ready via the OpenCity CKAN API (BMTC performance dataset).",
+      "lastUpdated": null
+    },
+    {
+      "id": "bengaluru_groundwater",
+      "name": "Bengaluru groundwater: extraction vs recharge (CGWB 2023)",
+      "type": "manual",
+      "enabled": true,
+   

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bengaluru Livability Dashboard — Traffic &amp; Water</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/gridjs.umd.js" integrity="sha384-/XXDzxe4FsGiAe50i/u9pY/Vy/uX654MHB1xoc1BJNnH1WXHhqHga9g3q5tF4gj7" crossorigin="anonymous"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f6f8;--card:#ffffff;--ink:#14202b;--muted:#5a6b78;--line:#e2e8ee;
+  --teal:#0d7a76;--teal-soft:#e2f2f1;--blue:#1f6fb2;--blue-soft:#e6f0f8;
+  --amber:#d98a00;--red:#c1432e;--red-soft:#fbe9e6;--green:#2e7d4f;--slate:#9aa7b1;
+  --shadow:0 1px 3px rgba(20,32,43,.08),0 1px 2px rgba(20,32,43,.04);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 18px 60px}
+header.masthead{margin-bottom:18px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);font-weight:700}
+h1{font-size:27px;margin:4px 0 6px;line-height:1.2}
+.sub{color:var(--muted);font-size:15px;max-width:760px}
+.tagline{margin-top:10px;font-size:13px;color:var(--muted);background:var(--teal-soft);border:1px solid #cfe8e6;border-radius:8px;padding:8px 12px;display:inline-block}
+.tabs{display:flex;gap:6px;margin:22px 0 18px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{border:none;background:none;font:inherit;font-size:14px;font-weight:600;color:var(--muted);padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:6px 6px 0 0}
+.tab:hover{color:var(--ink);background:#eef2f5}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.panel{display:none;animation:fade .25s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.kpi .num{font-size:25px;font-weight:800;line-height:1.1}
+.kpi .lbl{font-size:12.5px;color:var(--muted);margin-top:4px}
+.kpi .ctx{font-size:11.5px;margin-top:8px;font-weight:600}
+.kpi.alert .num{color:var(--red)}.kpi.warn .num{color:var(--amber)}.kpi.good .num{color:var(--green)}.kpi.info .num{color:var(--blue)}
+.ctx.bad{color:var(--red)}.ctx.mid{color:var(--amber)}.ctx.ok{color:var(--green)}.ctx.nv{color:var(--blue)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 20px;box-shadow:var(--shadow);margin-bottom:18px}
+.card h3{margin:0 0 2px;font-size:16px}
+.card .note{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.chart-box{position:relative;height:320px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}.chart-box{height:300px}}
+.callout{border-left:4px solid var(--teal);background:var(--teal-soft);border-radius:0 10px 10px 0;padding:14px 16px;margin:16px 0}
+.callout.action{border-color:var(--red);background:var(--red-soft)}
+.callout.win{border-color:var(--green);background:#e8f4ec}
+.callout.info{border-color:var(--blue);background:var(--blue-soft)}
+.callout h4{margin:0 0 6px;font-size:14px;letter-spacing:.02em;text-transform:uppercase}
+.callout.action h4{color:var(--red)}
+.callout p{margin:0;font-size:14px}.callout strong{color:var(--ink)}
+.src{font-size:11.5px;color:var(--muted)}
+.src a{color:var(--blue);text-decoration:none}.src a:hover{text-decoration:underline}
+.pill{font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-soft);padding:2px 8px;border-radius:20px;vertical-align:middle}
+.action-list{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.action-list{grid-template-columns:1fr}}
+.action-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.action-item .tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);background:var(--teal-soft);padding:3px 8px;border-radius:20px;margin-bottom:8px}
+.action-item h4{margin:0 0 6px;font-size:15px}
+.action-item p{margin:0;font-size:13.5px;color:var(--muted)}
+footer{margin-top:24px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+footer a{color:var(--blue);text-decoration:none}
+.disclaimer{font-size:11.5px;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:8px;padding:10px 12px;margin-top:14px}
+.gridjs-wrapper{box-shadow:none!important;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+table.gridjs-table{font-size:13px;width:100%;border-collapse:collapse}
+th.gridjs-th{background:#f0f4f7;color:var(--ink);font-weight:600;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px}
+th.gridjs-th .gridjs-th-content{float:left}
+td.gridjs-td{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--ink)}
+tr.gridjs-tr:last-child td{border-bottom:none}
+tr.gridjs-tr:hover td{background:#f7fafb}
+.gridjs-sort{background:none;border:none;cursor:pointer;width:13px;height:13px;float:right;opacity:.45}
+.gridjs-footer,.gridjs-head{display:none}
+.benchmark-note{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Urban Quality of Life · India</div>
+  <h1>Bengaluru Livability Dashboard</h1>
+  <div class="sub">A civic-data view of how Bengaluru moves and how it manages water — benchmarked against India's other major cities. Built to spark public debate and make the case for action.</div>
+  <div class="tagline">Primary focus: <strong>Bengaluru</strong> · Benchmark cities: Delhi, Mumbai, Chennai, Hyderabad, Pune, Kolkata · All figures from public, attributable sources</div>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab active" data-tab="traffic">🚦 Traffic &amp; Mobility</button>
+  <button class="tab" data-tab="water">💧 Water &amp; Sanitation</button>
+  <button class="tab" data-tab="action">📣 The Case for Action</button>
+</div>
+
+<!-- ============ TRAFFIC PANEL ============ -->
+<section class="panel active" id="traffic">
+
+  <div class="kpis">
+    <div class="kpi alert">
+      <div class="num">34m 10s</div>
+      <div class="lbl">to travel 10 km in central Bengaluru</div>
+      <div class="ctx bad">2nd-slowest city in India · ~17.6 km/h</div>
+    </div>
+    <div class="kpi alert">
+      <div class="num">893</div>
+      <div class="lbl">road-crash deaths in 2024 (city)</div>
+      <div class="ctx bad">~2.5 a day · pedestrian deaths down 23% vs 2023</div>
+    </div>
+    <div class="kpi alert">
+      <div class="num">₹20,000 cr</div>
+      <div class="lbl">est. yearly cost of congestion</div>
+      <div class="ctx bad">Lost time, fuel &amp; productivity</div>
+    </div>
+    <div class="kpi alert">
+      <div class="num">1.23 cr</div>
+      <div class="lbl">vehicles registered in Bengaluru</div>
+      <div class="ctx bad">+7.22 lakh added in 2024–25 alone</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <h4>🗺️ Zone-level drill-down available</h4>
+    <p>For a ward/zone view of where this congestion concentrates — a clickable map of Bengaluru's 8 zones scored by a congestion-weighted mobility-stress index, with quick wins and long-term actions per zone — open the companion artifact <strong>"Bengaluru Zone Traffic Drilldown"</strong> in your sidebar.</p>
+  </div>
+
+  <div class="card">
+    <h3>How long does 10 km take? Bengaluru vs peer cities</h3>
+    <p class="note">Average travel time to cover 10 km in the city centre — lower is better. TomTom Traffic Index 2024.</p>
+    <div class="chart-box"><canvas id="travelChart"></canvas></div>
+    <p class="benchmark-note">Kolkata edged past Bengaluru for #1 in 2024, but Bengaluru remains effectively tied — and far worse than Delhi or Mumbai despite their larger populations.</p>
+  </div>
+
+  <div class="card">
+    <h3>Bengaluru road deaths, 2022–2024 <span class="pill">NEW · Bengaluru Traffic Police</span></h3>
+    <p class="note">Persons killed in road crashes within city limits, by year — more current and city-specific than the 2022 national (MoRTH) figures.</p>
+    <div class="chart-box"><canvas id="deathsChart"></canvas></div>
+    <p class="benchmark-note">Deaths spiked ~19% in 2023, then eased slightly in 2024 (–1.9%); pedestrian deaths fell ~23% in 2024 — but the toll is still roughly 2.5 lives a day.</p>
+    <p class="src" style="margin-top:8px">Source: <a href="https://btp.gov.in/Accidentstats.aspx" target="_blank">Bengaluru Traffic Police</a> · <a href="https://data.opencity.in/dataset/bengaluru-road-accidents-data-2024" target="_blank">OpenCity — Bengaluru road accidents 2024</a>. Threaded through the project pipeline.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Accidents vs deaths across cities, 2022</h3>
+      <p class="note">Million-plus cities (MoRTH 2022). Bengaluru has fewer accidents than Delhi but a high death toll — a severity problem, not just a volume one.</p>
+      <div class="chart-box"><canvas id="accidentChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Who carries Bengaluru? Daily public-transport ridership</h3>
+      <p class="note">Lakh passengers per day. Buses do the heavy lifting; the metro is growing fast but small.</p>
+      <div class="chart-box"><canvas id="transitChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Air quality — PM2.5 vs the limits <span class="pill">NEW · wired via data pipeline</span></h3>
+    <p class="note">Monthly-average PM2.5 (µg/m³), December 2024. Even Bengaluru — among India's cleaner big cities — runs well above the WHO guideline, though below India's own lax standard.</p>
+    <div class="chart-box"><canvas id="airChart"></canvas></div>
+    <p class="benchmark-note">India's annual PM2.5 standard is 40 µg/m³; the WHO guideline is just 5. Bengaluru (~34) clears the Indian bar but is ~7× the WHO level — Mumbai and Kolkata are far worse.</p>
+    <p class="src" style="margin-top:8px">Source: <a href="https://www.statista.com/statistics/1284233/average-monthly-pm25-in-cities-in-india/" target="_blank">Statista — monthly PM2.5 in Indian cities (Dec 2024)</a> · live-update ready via <a href="https://openaq.org" target="_blank">OpenAQ</a> / <a href="https://aqicn.org" target="_blank">WAQI</a>.</p>
+  </div>
+
+  <div class="callout">
+    <h4>What the numbers say</h4>
+    <p>Bengaluru's congestion is structural: <strong>1.23 crore vehicles</strong> on a road network that delivers ~17.6 km/h in the core, costing the city ~<strong>₹20,000 crore a year</strong>. Yet <strong>35.8 lakh people a day</strong> already choose BMTC buses — more than 5× the metro. The cheapest win is not more flyovers; it is faster, more frequent buses and safe footpaths.</p>
+  </div>
+
+  <div class="card">
+    <h3>Mobility scorecard — sortable</h3>
+    <p class="note">Click any column header to sort. Travel time = minutes per 10 km (TomTom 2024); accident data = MoRTH 2022.</p>
+    <div id="trafficTable"></div>
+    <p class="src" style="margin-top:12px">Sources: <a href="https://www.tomtom.com/traffic-index/ranking/" target="_blank">TomTom Traffic Index 2024</a> · <a href="https://opencity.in/analysing-the-morth-road-accidents-report-for-2022/" target="_blank">MoRTH Road Accidents 2022 (via OpenCity)</a></p>
+  </div>
+
+</section>
+
+<!-- ============ WATER PANEL ============ -->
+<section class="panel" id="water">
+
+  <div class="kpis">
+    <div class="kpi warn"><div class="num">100–125</div><div class="lbl">litres/person/day supplied (Bengaluru)</div><div class="ctx mid">Below the 150 LPCD benchmark for metros</div></div>
+    <div class="kpi warn"><div class="num">~1,440</div><div class="lbl">MLD Cauvery water supply capacity</div><div class="ctx mid">Pumped uphill ~90 km — energy-intensive</div></div>
+    <div class="kpi alert"><div class="num">~28%</div><div class="lbl">of India's sewage actually treated</div><div class="ctx bad">National avg — the rest enters land &amp; water</div></div>
+    <div class="kpi alert"><div class="num">~1.9×</div><div class="lbl">groundwater drawn vs recharge</div><div class="ctx bad">All Bengaluru urban units over-exploited</div></div>
+  </div>
+
+  <div class="card">
+    <h3>India's sewage gap: generated vs treated</h3>
+    <p class="note">National picture, CPCB National Inventory of STPs (2021). Of all urban sewage generated, less than a third is treated before it re-enters the environment.</p>
+    <div class="chart-box"><canvas id="sewageChart"></canvas></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Share of sewage treated — by state</h3>
+      <p class="note">Even the best-performing states treat under three-quarters of what they generate. City-comparable data is sparse; state ratios are the most reliable cross-cut.</p>
+      <div class="chart-box"><canvas id="stateChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Water supplied per person — selected cities</h3>
+      <p class="note">Litres per capita per day (LPCD). The MoHUA benchmark is 135 LPCD (150 for metros). Many cities fall short.</p>
+      <div class="chart-box"><canvas id="lpcdChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h4>What the numbers say</h4>
+    <p>Bengaluru pumps Cauvery water <strong>~90 km uphill</strong> to deliver barely the benchmark, while its own rainfall and lakes go uncaptured and its groundwater is over-extracted. On treatment it is actually a national leader — but capacity on paper isn't the same as treated water in the lake. The fight is now about <strong>operation, reuse and accountability</strong>, not just pipes.</p>
+  </div>
+
+  <div class="card">
+    <h3>Groundwater — drawn nearly twice as fast as it recharges <span class="pill">NEW · wired via data pipeline</span></h3>
+    <p class="note">Index where 100 = extraction equals annual recharge (sustainable). Bengaluru draws far beyond that — every urban groundwater unit is classified "over-exploited" (CGWB 2023).</p>
+    <div class="chart-box"><canvas id="gwChart"></canvas></div>
+    <p class="benchmark-note">Over the safe limit and past the sustainable line: Bengaluru extracts roughly 1.9× its natural recharge, a core driver of the 2024 water crisis.</p>
+    <p class="src" style="margin-top:8px">Source: <a href="https://opencity.in/bengaluru-is-extracting-more-groundwater-than-nature-can-replenish/" target="_blank">OpenCity</a> · <a href="https://www.theweek.in/news/india/2024/03/12/bengaluru-water-crisis-how-over-exploitation-of-groundwater-caused-scarcity.html" target="_blank">CGWB 2023 assessment (reporting)</a>.</p>
+  </div>
+
+  <div class="card">
+    <h3>Sanitation snapshot — Swachh Survekshan 2024–25</h3>
+    <p class="note">India's annual urban cleanliness survey ranks 4,500+ cities. The leaders show what's achievable; Karnataka's Mysuru shines in its size class.</p>
+    <div id="swachhTable"></div>
+    <p class="src" style="margin-top:12px">Sources: <a href="https://cpcb.nic.in/status-of-stps/" target="_blank">CPCB — Status of STPs</a> · <a href="https://mybwssb.org/content/about-bwssb-0" target="_blank">BWSSB</a> · <a href="https://ss2024.sbmurban.org/" target="_blank">Swachh Survekshan 2024–25</a></p>
+  </div>
+
+</section>
+
+<!-- ============ ACTION PANEL ============ -->
+<section class="panel" id="action">
+  <div class="card">
+    <h3>From data to debate to decisions</h3>
+    <p class="note">A dashboard only matters if it changes something. Here is how a citizen, an RWA, or a civic group can use the figures above to engage the government.</p>
+    <div class="callout action">
+      <h4>The headline case</h4>
+      <p>Bengaluru loses ~<strong>34 minutes to move 10 km</strong>, buries <strong>~893 people a year</strong> in road crashes, leaks <strong>~1.9× its groundwater recharge</strong>, and adds <strong>7.22 lakh vehicles a year</strong> — at a congestion cost of ~<strong>₹20,000 crore</strong>. These are not acts of nature; they are budget and design choices that can be debated and changed.</p>
+    </div>
+  </div>
+
+  <div class="action-list">
+    <div class="action-item"><span class="tag">Mobility · Ask</span><h4>Fund footpaths before flyovers</h4><p>Pedestrians are a large share of road deaths. Demand a published, ward-wise footpath &amp; safe-crossing budget and a Vision-Zero target in the city's annual plan.</p></div>
+    <div class="action-item"><span class="tag">Mobility · Ask</span><h4>Bus priority, not just metro</h4><p>35.8 lakh ride BMTC daily — 5× the metro. Push for bus-priority lanes and frequency targets; track them publicly each quarter.</p></div>
+    <div class="action-item"><span class="tag">Water · Ask</span><h4>Treated-water accountability</h4><p>Capacity ≠ treatment. Demand monthly, plant-wise STP performance data and lake-quality reporting in the open.</p></div>
+    <div class="action-item"><span class="tag">Water · Ask</span><h4>Capture local water first</h4><p>Before more Cauvery is pumped 90 km uphill, demand rainwater-harvesting enforcement, lake rejuvenation and treated-water reuse targets.</p></div>
+    <div class="action-item"><span class="tag">Process · Ask</span><h4>Make the data routine &amp; open</h4><p>Ask BBMP/BWSSB/BTP to publish these indicators on a fixed schedule in machine-readable form, so debate runs on facts.</p></div>
+    <div class="action-item"><span class="tag">Process · Ask</span><h4>Benchmark against peers</h4><p>Chennai cut road deaths sharply with focused intervention. Use peer cities as proof improvement is possible — and a yardstick for officials.</p></div>
+  </div>
+
+  <div class="callout">
+    <h4>Where to get the underlying data</h4>
+    <p><strong>OpenCity (Oorvani Foundation)</strong> publishes Bengaluru &amp; Indian-city datasets under open licences — including the Bengaluru Traffic Police road-accident data used here. <strong>CPCB, MoRTH, CGWB, NITI Aayog, MoHUA and BWSSB</strong> are the primary upstream sources.</p>
+  </div>
+
+  <div class="card">
+    <h3>Full source list</h3>
+    <p class="src">
+      Traffic: <a href="https://www.tomtom.com/traffic-index/ranking/" target="_blank">TomTom Traffic Index 2024</a> ·
+      <a href="https://btp.gov.in/Accidentstats.aspx" target="_blank">Bengaluru Traffic Police</a> ·
+      <a href="https://opencity.in/analysing-the-morth-road-accidents-report-for-2022/" target="_blank">MoRTH 2022 (OpenCity)</a> ·
+      <a href="https://en.wikipedia.org/wiki/Transport_in_Bengaluru" target="_blank">BMTC / Namma Metro ridership</a><br>
+      Water &amp; air: <a href="https://cpcb.nic.in/status-of-stps/" target="_blank">CPCB STP inventory</a> ·
+      <a href="https://opencity.in/bengaluru-is-extracting-more-groundwater-than-nature-can-replenish/" target="_blank">OpenCity groundwater</a> ·
+      <a href="https://www.statista.com/statistics/1284233/average-monthly-pm25-in-cities-in-india/" target="_blank">PM2.5 (Statista)</a> ·
+      <a href="https://ss2024.sbmurban.org/" target="_blank">Swachh Survekshan 2024–25</a>
+    </p>
+  </div>
+</section>
+
+<div class="disclaimer">
+  <strong>Data notes &amp; caveats.</strong> Figures are the latest publicly available as of June 2026 and span different reference years (TomTom 2024; Bengaluru Traffic Police road deaths 2022–24; MoRTH cross-city accidents 2022; CPCB STP inventory 2021; PM2.5 Dec 2024; CGWB groundwater 2023). Per-capita water (LPCD) and the congestion-cost estimate are approximate and source-dependent. Always check the cited source before using a number in formal advocacy.
+</div>
+
+<footer>
+  Bengaluru Livability Dashboard · Built for civic awareness and action · Part of the Urban Planning in India project. Data threaded through the shared pipeline (data/metrics.json). Sources are public and attributable.
+</footer>
+</div>
+
+<script>
+/* @data:DATA  — generated from data/metrics.json by pipeline/build.js. Edit metrics.json, not here. */
+const DATA = {
+  travel: {cities:["Kolkata","Bengaluru","Pune","Hyderabad","Chennai","Mumbai","Delhi"],minutes:[34.55,34.17,33.37,32,30,29,23]},
+  accidents: {cities:["Delhi","Indore","Jabalpur","Bengaluru","Chennai"],accidents:[5652,4680,4046,3822,3452],deaths:[1461,null,null,772,507]},
+  transit: {labels:["BMTC buses","Namma Metro (avg)","Namma Metro (record)"],values:[35.8,6.36,8.26]},
+  sewage: {labels:["Generated","Installed capacity","Actually treated"],values:[72368,31841,20235]},
+  states: {names:["Punjab","Delhi","Haryana","Gujarat","Maharashtra"],pct:[72,72,71,54,47]},
+  lpcd: {cities:["Benchmark (metro)","MoHUA norm","Bengaluru (high)","Bengaluru (low)","Chennai"],values:[150,135,125,100,90],colors:["#9aa7b1","#c3cdd5","#0d7a76","#0d7a76","#d98a00"]},
+  airQuality: {cities:["Bengaluru","Mumbai","Kolkata"],pm25:[34.33,64.33,92.64],indiaStandard:40,whoGuideline:5,asOf:"Dec 2024",source:"Statista / IQAir"},
+  groundwater: {labels:["Sustainable (recharge = 100)","Bengaluru extraction"],index:[100,190],asOf:"CGWB 2023",source:"CGWB 2023 / OpenCity / news reports"},
+  roadDeaths: {years:["2022","2023","2024"],deaths:[772,921,893],asOf:"2024",source:"Bengaluru Traffic Police (via OpenCity)"},
+  congestionCostCr: 20000
+};
+/* @end:DATA */
+
+const fmt = n => n==null ? "—" : n.toLocaleString("en-IN");
+const TEAL="#0d7a76", BLUE="#1f6fb2", RED="#c1432e", AMBER="#d98a00", GREEN="#2e7d4f", SLATE="#9cc3e0", GREY="#9aa7b1", TICK="#5a6b78", GRID="#eef1f3";
+const charts={}, built={};
+
+function baseBar(extra){
+  return Object.assign({responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{display:false},ticks:{color:TICK,font:{size:11}}},
+            y:{beginAtZero:true,grid:{color:GRID},ticks:{color:TICK,font:{size:11}}}}}, extra||{});
+}
+
+function buildTraffic(){
+  if(built.traffic) return; built.traffic=true;
+
+  const t=DATA.travel;
+  charts.travel=new Chart(document.getElementById("travelChart"),{type:"bar",
+    data:{labels:t.cities,datasets:[{data:t.minutes,backgroundColor:t.cities.map(c=>c==="Bengaluru"?RED:BLUE),borderRadius:5}]},
+    options:baseBar({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+" min / 10 km"}}},
+      scales:{x:{grid:{display:false},ticks:{color:TICK,font:{size:11}}},
+        y:{beginAtZero:true,grid:{color:GRID},title:{display:true,text:"minutes per 10 km",color:TICK,font:{size:11}},ticks:{color:TICK}}}})});
+
+  const rd=DATA.roadDeaths;
+  charts.deaths=new Chart(document.getElementById("deathsChart"),{type:"bar",
+    data:{labels:rd.years,datasets:[{data:rd.deaths,backgroundColor:[GREY,RED,AMBER],borderRadius:5}]},
+    options:baseBar({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+" deaths"}}},
+      scales:{x:{grid:{display:false},ticks:{color:TICK,font:{size:12}}},
+        y:{beginAtZero:true,grid:{color:GRID},title:{display:true,text:"road-crash deaths / year",color:TICK,font:{size:11}},ticks:{color:TICK}}}})});
+
+  const a=DATA.accidents;
+  charts.acc=new Chart(document.getElementById("accidentChart"),{type:"bar",
+    data:{labels:a.cities,datasets:[
+      {label:"Accidents",data:a.accidents,backgroundColor:SLATE,borderRadius:4},
+      {label:"Deaths",data:a.deaths,backgroundColor:RED,borderRadius:4}]},
+    options:baseBar({plugins:{legend:{display:true,position:"top",labels:{boxWidth:12,font:{size:11},color:TICK}}},
+      scales:{x:{grid:{display:false},ticks:{color:TICK,font:{size:10}}},
+        y:{beginAtZero:true,grid:{color:GRID},ticks:{color:TICK}}}})});
+
+  const tr=DATA.transit;
+  charts.tr=new Chart(document.getElementById("transitChart"),{type:"bar",
+    data:{labels:tr.labels,datasets:[{data:tr.values,backgroundColor:[TEAL,BLUE,SLATE],borderRadius:5}]},
+    options:baseBar({indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+" lakh / day"}}},
+      scales:{x:{beginAtZero:true,grid:{color:GRID},title:{display:true,text:"lakh passengers / day",color:TICK,font:{size:11}},ticks:{color:TICK}},
+        y:{grid:{display:false},ticks:{color:TICK,font:{size:11}}}}})});
+
+  const aq=DATA.airQuality;
+  charts.air=new Chart(document.getElementById("airChart"),{
+    data:{labels:aq.cities,datasets:[
+      {type:"bar",label:"PM2.5 ("+aq.asOf+")",data:aq.pm25,backgroundColor:aq.pm25.map(v=>v<=aq.indiaStandard?TEAL:RED),borderRadius:5,order:3},
+      {type:"line",label:"India standard ("+aq.indiaStandard+")",data:aq.cities.map(()=>aq.indiaStandard),borderColor:AMBER,borderDash:[6,4],borderWidth:2,pointRadius:0,order:1},
+      {type:"line",label:"WHO guideline ("+aq.whoGuideline+")",data:aq.cities.map(()=>aq.whoGuideline),borderColor:TICK,borderDash:[3,3],borderWidth:1.5,pointRadius:0,order:2}]},
+    options:baseBar({plugins:{legend:{display:true,position:"top",labels:{boxWidth:12,font:{size:11},color:TICK}},tooltip:{callbacks:{label:c=>c.dataset.label+": "+c.parsed.y+" µg/m³"}}},
+      scales:{x:{grid:{display:false},ticks:{color:TICK,font:{size:11}}},
+      

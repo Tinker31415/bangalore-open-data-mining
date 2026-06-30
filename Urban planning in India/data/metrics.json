@@ -1,0 +1,730 @@
+{
+  "_meta": {
+    "description": "Single source of truth for the Urban Planning in India artifacts. Edit values in 'datasets' (or via pipeline/refresh.js from registered sources), then run 'node pipeline/build.js' to thread the changes into every dashboard.",
+    "generated": "2026-06-29T12:52:15.605Z",
+    "datasets": [
+      "livability_data",
+      "mobility_data",
+      "mobility_roadmap",
+      "zones",
+      "hyderabad_data"
+    ]
+  },
+  "_sources": {
+    "bengaluru_air_quality": {
+      "name": "Bengaluru air quality — PM2.5 (Statista/IQAir, Dec 2024)",
+      "type": "manual",
+      "lastUpdated": "2026-06-28T11:49:18.711Z",
+      "fields": [
+        "livability_data.airQuality"
+      ]
+    }
+  },
+  "datasets": {
+    "livability_data": {
+      "travel": {
+        "cities": [
+          "Kolkata",
+          "Bengaluru",
+          "Pune",
+          "Hyderabad",
+          "Chennai",
+          "Mumbai",
+          "Delhi"
+        ],
+        "minutes": [
+          34.55,
+          34.17,
+          33.37,
+          32,
+          30,
+          29,
+          23
+        ]
+      },
+      "accidents": {
+        "cities": [
+          "Delhi",
+          "Indore",
+          "Jabalpur",
+          "Bengaluru",
+          "Chennai"
+        ],
+        "accidents": [
+          5652,
+          4680,
+          4046,
+          3822,
+          3452
+        ],
+        "deaths": [
+          1461,
+          null,
+          null,
+          772,
+          507
+        ]
+      },
+      "transit": {
+        "labels": [
+          "BMTC buses",
+          "Namma Metro (avg)",
+          "Namma Metro (record)"
+        ],
+        "values": [
+          35.8,
+          6.36,
+          8.26
+        ]
+      },
+      "sewage": {
+        "labels": [
+          "Generated",
+          "Installed capacity",
+          "Actually treated"
+        ],
+        "values": [
+          72368,
+          31841,
+          20235
+        ]
+      },
+      "states": {
+        "names": [
+          "Punjab",
+          "Delhi",
+          "Haryana",
+          "Gujarat",
+          "Maharashtra"
+        ],
+        "pct": [
+          72,
+          72,
+          71,
+          54,
+          47
+        ]
+      },
+      "lpcd": {
+        "cities": [
+          "Benchmark (metro)",
+          "MoHUA norm",
+          "Bengaluru (high)",
+          "Bengaluru (low)",
+          "Chennai"
+        ],
+        "values": [
+          150,
+          135,
+          125,
+          100,
+          90
+        ],
+        "colors": [
+          "#9aa7b1",
+          "#c3cdd5",
+          "#0d7a76",
+          "#0d7a76",
+          "#d98a00"
+        ]
+      },
+      "airQuality": {
+        "cities": [
+          "Bengaluru",
+          "Mumbai",
+          "Kolkata"
+        ],
+        "pm25": [
+          34.33,
+          64.33,
+          92.64
+        ],
+        "indiaStandard": 40,
+        "whoGuideline": 5,
+        "asOf": "Dec 2024",
+        "source": "Statista / IQAir"
+      },
+      "groundwater": {
+        "labels": [
+          "Sustainable (recharge = 100)",
+          "Bengaluru extraction"
+        ],
+        "index": [
+          100,
+          190
+        ],
+        "asOf": "CGWB 2023",
+        "source": "CGWB 2023 / OpenCity / news reports"
+      },
+      "roadDeaths": {
+        "years": [
+          "2022",
+          "2023",
+          "2024"
+        ],
+        "deaths": [
+          772,
+          921,
+          893
+        ],
+        "asOf": "2024",
+        "source": "Bengaluru Traffic Police (via OpenCity)"
+      },
+      "congestionCostCr": 20000
+    },
+    "mobility_data": {
+      "mode": {
+        "labels": [
+          "Public transport",
+          "Two-wheeler",
+          "Walk / cycle",
+          "Car",
+          "Auto / other"
+        ],
+        "values": [
+          32,
+          27,
+          26,
+          7,
+          8
+        ],
+        "colors": [
+          "#051C2C",
+          "#1463A8",
+          "#00A1D6",
+          "#8B9AA5",
+          "#C9D2D9"
+        ]
+      },
+      "modeCompare": {
+        "cities": [
+          "Delhi",
+          "Bogotá",
+          "Bengaluru",
+          "Bangkok",
+          "Jakarta (2019)"
+        ],
+        "values": [
+          50,
+          35,
+          32,
+          40,
+          25
+        ]
+      },
+      "metroRide": {
+        "cities": [
+          "Delhi",
+          "Bengaluru",
+          "Mumbai",
+          "Hyderabad",
+          "Chennai"
+        ],
+        "values": [
+          65,
+          10,
+          8.5,
+          4.7,
+          3.19
+        ]
+      },
+      "metroEff": {
+        "cities": [
+          "Delhi",
+          "Bengaluru",
+          "Hyderabad",
+          "Chennai"
+        ],
+        "values": [
+          16500,
+          10400,
+          6800,
+          5900
+        ]
+      },
+      "busNorm": {
+        "cities": [
+          "Bengaluru",
+          "Delhi",
+          "Mumbai"
+        ],
+        "values": [
+          50,
+          45,
+          21.6
+        ]
+      },
+      "busEv": {
+        "labels": [
+          "Electric",
+          "Diesel / CNG"
+        ],
+        "values": [
+          1568,
+          5432
+        ],
+        "colors": [
+          "#1C7A52",
+          "#C9D2D9"
+        ]
+      },
+      "brt": {
+        "cities": [
+          "Jakarta",
+          "Bogotá",
+          "Bengaluru"
+        ],
+        "values": [
+          251,
+          114,
+          0
+        ]
+      },
+      "globalMode": {
+        "cities": [
+          "Delhi",
+          "Bangkok",
+          "Bogotá",
+          "Bengaluru",
+          "Jakarta"
+        ],
+        "values": [
+          50,
+          40,
+          35,
+          32,
+          25
+        ]
+      },
+      "capex": {
+        "modes": [
+          "Metro",
+          "Suburban rail",
+          "BRT"
+        ],
+        "values": [
+          541,
+          106,
+          13.5
+        ]
+      },
+      "buys": {
+        "modes": [
+          "Metro",
+          "Suburban rail",
+          "BRT"
+        ],
+        "km": [
+          1,
+          5.1,
+          40
+        ]
+      },
+      "shakti": {
+        "years": [
+          "FY22-23 (pre-Shakti)",
+          "FY23-24 (Shakti)",
+          "FY24-25 (Shakti)"
+        ],
+        "reimb": [
+          40,
+          16,
+          14
+        ]
+      },
+      "busRidership": {
+        "periods": [
+          "Pre-COVID (2017–20)",
+          "COVID (2020–22)",
+          "Post-Shakti (2024–25)"
+        ],
+        "lakh": [
+          37.5,
+          14.4,
+          45.5
+        ],
+        "asOf": "2025",
+        "source": "OpenCity / CAG / Deccan Herald"
+      }
+    },
+    "mobility_roadmap": {
+      "y1": {
+        "meta": "Low-capex moves deliverable within ~12 months — mostly operations, road-space reallocation and integration.",
+        "items": [
+          {
+            "c": "bus",
+            "h": "Add 1,500–2,500 buses, focused on feeders",
+            "p": "Prioritise routes that feed metro stations and underserved peripheries, pushing toward the upper end of the buses-per-lakh norm."
+          },
+          {
+            "c": "bus",
+            "h": "Bus-priority lanes on the 10 worst corridors",
+            "p": "Paint-and-bollard priority lanes on ORR, Whitefield, Hosur Rd — the cheapest way to speed up 44 lakh daily bus trips."
+          },
+          {
+            "c": "sys",
+            "h": "One card, one fare, timed transfers",
+            "p": "Integrate BMTC + metro ticketing and fares so a bus-to-metro trip is seamless and not double-charged."
+          },
+          {
+            "c": "sys",
+            "h": "Real-time tracking + open data",
+            "p": "Citywide live bus tracking and published open GTFS feeds, plus a public reliability/punctuality dashboard."
+          },
+          {
+            "c": "metro",
+            "h": "More peak capacity + park-and-ride",
+            "p": "Six-car trains and tighter peak headways; cycle docks and park-and-ride at every station to fix last-mile access."
+          },
+          {
+            "c": "sys",
+            "h": "Operationalise the BMLTA",
+            "p": "Give the legislated unified metropolitan transport authority real budget, staff and decision power over all modes."
+          }
+        ]
+      },
+      "y3": {
+        "meta": "Capital build-out over ~2–4 years — network expansion, electrification and a true rapid-bus backbone.",
+        "items": [
+          {
+            "c": "metro",
+            "h": "Finish Phase 2 → ~170 km network",
+            "p": "Complete the 75 km Phase 2 and target 20–25 lakh daily metro riders; begin Phase 3 (ORR & airport corridors)."
+          },
+          {
+            "c": "bus",
+            "h": "Build a real BRT backbone",
+            "p": "Create Bengaluru's first segregated BRT trunk corridors — the Jakarta/Bogotá move the city has never made."
+          },
+          {
+            "c": "bus",
+            "h": "Fleet to 10,000–12,000, mostly electric",
+            "p": "Scale and electrify the fleet with new depots and charging; aim for a majority-electric bus system."
+          },
+          {
+            "c": "sys",
+            "h": "Distance-based unified fares",
+            "p": "Single distance-based fare across bus + metro + suburban rail, with monthly passes and concessions."
+          },
+          {
+            "c": "sys",
+            "h": "Open suburban-rail corridors 2 & 4",
+            "p": "Push the 54.9 km under construction to operation; unblock land acquisition that has stalled the project."
+          },
+          {
+            "c": "metro",
+            "h": "TOD + value capture at stations",
+            "p": "Transit-oriented zoning and land-value capture around stations to densify ridership and help fund transit."
+          }
+        ]
+      },
+      "lt": {
+        "meta": "Structural, 5–10+ year transformation — a mature, integrated, financially self-sustaining network.",
+        "items": [
+          {
+            "c": "metro",
+            "h": "Metro network 175+ km",
+            "p": "Complete Phase 3/3A so most of the metropolitan area is within walking distance of frequent rail."
+          },
+          {
+            "c": "sys",
+            "h": "Full 148 km suburban rail operational",
+            "p": "A completed commuter-rail spine integrated with metro and bus for regional trips."
+          },
+          {
+            "c": "sys",
+            "h": "50%+ public + non-motorised mode share",
+            "p": "A binding, time-bound target that reverses private-vehicle dominance — Bengaluru's version of Jakarta's 60%/2029 goal."
+          },
+          {
+            "c": "sys",
+            "h": "TOD-led, walkable land use",
+            "p": "Dense, mixed-use, walkable development along every transit corridor — transit shapes the city, not the other way round."
+          },
+          {
+            "c": "sys",
+            "h": "Self-sustaining transit finance",
+            "p": "A dedicated Urban Transport Fund plus value capture and non-fare revenue, so service isn't hostage to annual budgets."
+          },
+          {
+            "c": "bus",
+            "h": "Zero-emission fleet + 500 m access",
+            "p": "100% electric buses and a service standard that every resident is within 500 m of frequent public transport."
+          }
+        ]
+      }
+    },
+    "zones": [
+      {
+        "id": "mahadevapura",
+        "name": "Mahadevapura",
+        "region": "East · IT corridor",
+        "x": 632,
+        "y": 228,
+        "wards": 26,
+        "score": 86,
+        "rank": 1,
+        "c": 95,
+        "d": 70,
+        "t": 85,
+        "hot": "ORR tech corridor — Marathahalli, Bellandur, KR Puram. Among India's worst gridlock; jobs far outpace transit.",
+        "metro": "Purple Line reaches Whitefield, but ORR / Bellandur / Sarjapur have no metro yet (Blue Line under construction).",
+        "qw": [
+          "Bus-priority lane on ORR (Silk Board–KR Puram) with high-frequency feeders to Whitefield metro.",
+          "Staggered work hours + pooled tech-park shuttles across ORR employers."
+        ],
+        "lt": [
+          "Complete the ORR–Airport (Blue Line) metro.",
+          "TOD, junction redesign and footpaths at Bellandur / Marathahalli."
+        ]
+      },
+      {
+        "id": "bommanahalli",
+        "name": "Bommanahalli",
+        "region": "South-east",
+        "x": 632,
+        "y": 430,
+        "wards": 27,
+        "score": 75,
+        "rank": 2,
+        "c": 90,
+        "d": 65,
+        "t": 55,
+        "hot": "Silk Board junction — ~4.5 km/h at peak, among India's worst; gateway to Electronic City and the ORR.",
+        "metro": "New Yellow Line (2025) serves Silk Board–Electronic City; HSR / Sarjapur side still a gap.",
+        "qw": [
+          "Feeder buses from HSR & Electronic City to new Yellow Line stations.",
+          "Silk Board ramp/signal optimisation + dedicated bus bays."
+        ],
+        "lt": [
+          "TOD around Electronic City Yellow Line stations.",
+          "Sarjapur Road mass transit + complete streets."
+        ]
+      },
+      {
+        "id": "east",
+        "name": "East",
+        "region": "Central · CBD",
+        "x": 455,
+        "y": 208,
+        "wards": 47,
+        "score": 70,
+        "rank": 3,
+        "c": 80,
+        "d": 85,
+        "t": 35,
+        "hot": "Commercial core — MG Road, Indiranagar, Shivajinagar. Dense, with very high trip attraction.",
+        "metro": "Well served by the Purple Line (MG Road, Indiranagar, Baiyappanahalli).",
+        "qw": [
+          "Paid parking + pedestrian pilots on MG Rd / Indiranagar 100ft Rd.",
+          "Last-mile e-autos and cycles at Purple Line stations."
+        ],
+        "lt": [
+          "A transit-priority, low-traffic CBD zone.",
+          "Off-street parking + timed freight to decongest the core."
+        ]
+      },
+      {
+        "id": "south",
+        "name": "South",
+        "region": "South-central",
+        "x": 455,
+        "y": 382,
+        "wards": 48,
+        "score": 69,
+        "rank": 4,
+        "c": 75,
+        "d": 85,
+        "t": 40,
+        "hot": "Dense residential-commercial — Jayanagar, BTM, Banashankari, Bannerghatta Road.",
+        "metro": "Green + Yellow lines give decent coverage; Bannerghatta Road is the main gap.",
+        "qw": [
+          "Bus lanes + frequency boost on Bannerghatta Road.",
+          "Seamless Green–Yellow interchange and last-mile links."
+        ],
+        "lt": [
+          "Bannerghatta Road metro extension + TOD.",
+          "Neighbourhood walkability and safe-crossing programme."
+        ]
+      },
+      {
+        "id": "yelahanka",
+        "name": "Yelahanka",
+        "region": "North",
+        "x": 372,
+        "y": 80,
+        "wards": 15,
+        "score": 65,
+        "rank": 5,
+        "c": 70,
+        "d": 40,
+        "t": 80,
+        "hot": "Hebbal junction and airport-road peaks; among the fastest-growing peripheries.",
+        "metro": "No operational metro yet — the Airport (Blue) Line is under construction.",
+        "qw": [
+          "High-frequency feeder buses: Hebbal–airport–ITPL.",
+          "Bus priority and throughput fixes at Hebbal junction."
+        ],
+        "lt": [
+          "Operationalise the Airport Metro + suburban-rail corridor.",
+          "TOD-led peripheral growth to avoid car dependence."
+        ]
+      },
+      {
+        "id": "west",
+        "name": "West",
+        "region": "West-central",
+        "x": 268,
+        "y": 360,
+        "wards": 46,
+        "score": 65,
+        "rank": 6,
+        "c": 70,
+        "d": 80,
+        "t": 40,
+        "hot": "Yeshwantpur, Rajajinagar, Malleshwaram; heavy wholesale-market and rail-freight movement.",
+        "metro": "Green + Purple lines serve the spine well.",
+        "qw": [
+          "Bus priority around Yeshwantpur / goods-shed area.",
+          "Last-mile connections at Green & Purple stations."
+        ],
+        "lt": [
+          "Rationalise wholesale-market and freight movement.",
+          "TOD intensification along the Green Line."
+        ]
+      },
+      {
+        "id": "dasarahalli",
+        "name": "Dasarahalli",
+        "region": "North-west",
+        "x": 132,
+        "y": 208,
+        "wards": 12,
+        "score": 61,
+        "rank": 7,
+        "c": 65,
+        "d": 70,
+        "t": 45,
+        "hot": "Peenya industrial belt and Tumkur Road freight congestion.",
+        "metro": "Green Line (Peenya, Jalahalli, Madavara) gives reasonable coverage.",
+        "qw": [
+          "Peenya industrial-area shuttle + Tumkur Road bus priority.",
+          "Truck-movement time windows."
+        ],
+        "lt": [
+          "Suburban rail on the Tumkur Road corridor.",
+          "Industrial-area street & footpath upgrades."
+        ]
+      },
+      {
+        "id": "rrnagar",
+        "name": "RR Nagar",
+        "region": "South-west",
+        "x": 130,
+        "y": 470,
+        "wards": 22,
+        "score": 58,
+        "rank": 8,
+        "c": 60,
+        "d": 55,
+        "t": 55,
+        "hot": "Kengeri, RR Nagar, Mysuru Road; a large zone with thin coverage off the main corridor.",
+        "metro": "Purple Line serves Kengeri–Challaghatta; coverage thins away from the spine.",
+        "qw": [
+          "Feeder buses to the Purple Line (Kengeri / Challaghatta).",
+          "Mysuru Road bus priority."
+        ],
+        "lt": [
+          "TOD around Kengeri terminal + suburban rail.",
+          "Transit-first planning for west-corridor growth."
+        ]
+      }
+    ],
+    "hyderabad_data": {
+      "travel": {
+        "cities": [
+          "Kolkata",
+          "Bengaluru",
+          "Pune",
+          "Hyderabad",
+          "Chennai",
+          "Mumbai",
+          "Delhi"
+        ],
+        "minutes": [
+          34.55,
+          34.17,
+          33.37,
+          32,
+          30,
+          29,
+          23
+        ]
+      },
+      "metroRide": {
+        "cities": [
+          "Delhi",
+          "Bengaluru",
+          "Mumbai",
+          "Hyderabad",
+          "Chennai"
+        ],
+        "lakh": [
+          65,
+          10,
+          8.5,
+          5,
+          3.19
+        ]
+      },
+      "busGap": {
+        "labels": [
+          "Operating now",
+          "Estimated need"
+        ],
+        "buses": [
+          3100,
+          6000
+        ]
+      },
+      "metroExp": {
+        "labels": [
+          "Operational (Phase 1)",
+          "Proposed Phase 2A"
+        ],
+        "km": [
+          69,
+          76.2
+        ]
+      },
+      "water": {
+        "labels": [
+          "Metro benchmark",
+          "Supplied (HMWSSB)",
+          "Effective (after ~40% loss)"
+        ],
+        "lpcd": [
+          150,
+          127,
+          80
+        ]
+      },
+      "air": {
+        "cities": [
+          "Hyderabad",
+          "Bengaluru",
+          "Mumbai",
+          "Kolkata"
+        ],
+        "pm25": [
+          34,
+          34.33,
+          64.33,
+          92.64
+        ],
+        "indiaStandard": 40,
+        "whoGuideline": 5
+      }
+    }
+  }
+}

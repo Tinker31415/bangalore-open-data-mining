@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moving Bengaluru — Mobile (works without JavaScript)</title>
+<style>
+  :root{
+    --bg0:#04141e; --bg1:#0a2433; --card:rgba(255,255,255,0.022);
+    --ink:#F2F7F9; --dim:#9DB2BF; --faint:#5E7482;
+    --cyan:#26C7E6; --cyanDk:#0E7E9B; --blue:#3E8AD0;
+    --green:#34C08A; --amber:#E6B143; --red:#F2643F;
+    --slate:#5E7585; --slateDk:#33454F;
+    --line:rgba(255,255,255,0.09); --track:rgba(255,255,255,0.07);
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;-webkit-text-size-adjust:100%;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(120% 50% at 75% 0%, var(--bg1) 0%, var(--bg0) 55%) no-repeat,
+      var(--bg0);
+    background-attachment:fixed;
+    color:var(--ink); font-family:var(--sans); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:520px; margin:0 auto; padding:0 22px 80px;}
+  ::selection{background:var(--cyan); color:var(--bg0);}
+
+  /* ── chrome ── */
+  .topbar{position:sticky; top:0; z-index:5; backdrop-filter:blur(8px);
+    background:linear-gradient(var(--bg0), rgba(4,20,30,0.82)); 
+    border-bottom:1px solid var(--line); padding:11px 22px;
+    display:flex; align-items:center; justify-content:space-between;}
+  .topbar b{font-family:var(--mono); font-size:11px; letter-spacing:0.14em; color:var(--cyan); font-weight:700;}
+  .topbar span{font-family:var(--mono); font-size:10.5px; letter-spacing:0.06em; color:var(--faint);}
+
+  /* ── section ── */
+  section{padding:54px 0 10px; border-top:1px solid var(--line);}
+  section:first-of-type{border-top:none;}
+  .kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .kicker i{width:24px; height:3px; display:block;}
+  .kicker span{font-family:var(--mono); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:700;}
+  h2{font-family:var(--serif); font-weight:700; font-size:30px; line-height:1.16; letter-spacing:-0.015em; margin:0 0 14px;}
+  .sub{font-size:16px; color:var(--dim); margin:0 0 26px; text-wrap:pretty;}
+  .note{font-size:14px; line-height:1.55; color:var(--dim); border-left:3px solid var(--line); padding-left:14px; margin-top:22px;}
+  .note.cy{border-color:var(--cyan);} .note.rd{border-color:var(--red);} .note.bl{border-color:var(--blue);} .note.gr{border-color:var(--green);}
+  b.cy{color:var(--cyan);} b.gr{color:var(--green);}
+
+  /* ── bars ── */
+  .bars{display:flex; flex-direction:column; gap:16px;}
+  .bar .row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px;}
+  .bar .lab{font-size:15px; color:var(--dim);}
+  .bar.focus .lab{color:var(--ink); font-weight:700;}
+  .bar .val{font-family:var(--serif); font-size:17px; font-weight:700; color:var(--dim);}
+  .bar.focus .val{color:var(--ink);}
+  .bar .track{position:relative; height:26px; background:var(--track); border-radius:5px; overflow:hidden;}
+  .bar .fill{position:absolute; left:0; top:0; bottom:0; border-radius:5px;}
+  .bar.zero .val{color:var(--red);}
+  .bar .none{position:absolute; left:12px; top:50%; transform:translateY(-50%); font-family:var(--mono);
+    font-size:12px; letter-spacing:0.1em; color:var(--red); font-weight:700;}
+
+  /* ── stat chips ── */
+  .chips{display:flex; gap:24px; margin-top:8px;}
+  .chip{flex:1; border-top:3px solid var(--cyan); padding-top:14px;}
+  .chip.rd{border-color:var(--red);} .chip.am{border-color:var(--amber);} .chip.gr{border-color:var(--green);}
+  .chip .n{font-family:var(--serif); font-weight:700; font-size:34px; line-height:1; letter-spacing:-0.01em;}
+  .chip .n small{font-size:17px; color:var(--dim); margin-left:3px;}
+  .chip .l{font-size:14.5px; font-weight:600; margin-top:9px;}
+  .chip .c{font-size:13px; color:var(--faint); margin-top:6px; line-height:1.4;}
+
+  /* ── donut (CSS conic) ── */
+  .donut-wrap{display:flex; flex-direction:column; align-items:center; gap:24px;}
+  .donut{position:relative; width:210px; height:210px; border-radius:50%;
+    background:conic-gradient(
+      var(--cyan) 0 32%, var(--blue) 32% 59%, var(--green) 59% 85%,
+      var(--slate) 85% 92%, var(--slateDk) 92% 100%);}
+  .donut::after{content:""; position:absolute; inset:30px; border-radius:50%; background:var(--bg0);
+    box-shadow:0 0 0 1px var(--line) inset;}
+  .donut .ctr{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2;}
+  .donut .ctr .pct{font-family:var(--serif); font-weight:700; font-size:44px; line-height:1;}
+  .donut .ctr .pl{font-size:12px; color:var(--dim); margin-top:3px;}
+  .legend{display:flex; flex-wrap:wrap; gap:10px 22px; justify-content:center;}
+  .legend div{display:flex; align-items:center; gap:9px; font-size:14.5px;}
+  .legend i{width:13px; height:13px; border-radius:3px; display:block;}
+  .legend b{font-family:var(--serif); color:var(--dim);}
+
+  /* ── funnel rows (sewage) ── */
+  .funnel{display:flex; flex-direction:column; gap:13px; margin-top:18px;}
+  .flab{display:flex; justify-content:space-between; font-size:14px; color:var(--dim); margin-bottom:5px;}
+  .flab b{font-family:var(--serif); font-size:16px;}
+  .fbar{height:18px; background:var(--track); border-radius:5px; overflow:hidden;}
+  .fbar i{display:block; height:100%; border-radius:5px;}
+  .ml{font-family:var(--mono); font-size:11.5px; letter-spacing:0.14em; font-weight:700;}
+
+  /* ── dots (capex buys) ── */
+  .buy{margin-top:18px;}
+  .buy .h{display:flex; justify-content:space-between; align-items:baseline;}
+  .buy .h .m{font-size:15px; font-weight:600; color:var(--dim);}
+  .buy.on .h .m{color:var(--ink); font-weight:700;}
+  .buy .h .km{font-family:var(--serif); font-weight:700; font-size:19px; color:var(--dim);}
+  .buy.on .h .km{font-size:26px; color:var(--cyan);}
+  .dots{display:flex; flex-wrap:wrap; gap:3px; margin-top:8px;}
+  .dots i{width:15px; height:8px; border-radius:2px; display:block; background:var(--slate); opacity:.7;}
+  .buy.on .dots i{background:var(--cyan); opacity:1; width:13px;}
+
+  /* ── zone map (CSS positioned) ── */
+  .zlegend{display:flex; flex-wrap:wrap; gap:8px 18px; font-size:12.5px; color:var(--dim); margin:18px 0 6px;}
+  .zlegend span{display:flex; align-items:center; gap:7px;} .zlegend i{width:12px; height:12px; border-radius:3px; display:block;}
+  details.zone{border:1px solid var(--line); border-top:2px solid var(--slate); border-radius:8px;
+    background:var(--card); margin-top:12px; overflow:hidden;}
+  details.zone.hi{border-top-color:var(--red);} details.zone.md{border-top-color:var(--amber);} details.zone.lo{border-top-color:var(--green);}
+  details.zone summary{list-style:none; cursor:pointer; padding:16px 18px; display:flex; align-items:center; gap:14px;}
+  details.zone summary::-webkit-details-marker{display:none;}
+  .zscore{flex-shrink:0; width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-weight:700; font-size:22px; color:var(--bg0);}
+  .zhi{background:var(--red);} .zmd{background:var(--amber);} .zlo{background:var(--green);}
+  .zmeta{flex:1; min-width:0;}
+  .zmeta .nm{font-family:var(--serif); font-size:20px; font-weight:700;}
+  .zmeta .rg{font-size:13px; color:var(--dim);}
+  .zrank{font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:0.08em; text-align:right;}
+  .chev{flex-shrink:0; color:var(--faint); font-size:18px; transition:transform .2s;}
+  details.zone[open] .chev{transform:rotate(180deg);}
+  .zbody{padding:2px 18px 20px;}
+  .zmetrics{display:flex; gap:14px; margin:6px 0 16px;}
+  .zmetrics .mt{flex:1;}
+  .zmetrics .mt .t{display:flex; justify-content:space-between; font-size:12px; color:var(--dim); margin-bottom:5px;}
+  .zmetrics .mt .t b{color:var(--ink);}
+  .zmetrics .mt .tk{height:6px; background:var(--track); border-radius:3px; overflow:hidden;}
+  .zmetrics .mt .tk i{display:block; height:100%; border-radius:3px;}
+  .zbody p{margin:0 0 10px; font-size:14px; line-height:1.5;}
+  .zbody p.hot{color:var(--ink);} .zbody p.met{color:var(--dim); font-size:13px;}
+  .zcols{display:flex; gap:20px; margin-top:6px;}
+  .zcols .col{flex:1;}
+  .zcols .ct{font-family:var(--mono); font-size:10.5px; letter-spacing:0.1em; font-weight:700; margin-bottom:8px;}
+  .zcols ul{margin:0; padding:0; list-style:none;}
+  .zcols li{font-size:12.5px; color:var(--dim); line-height:1.45; margin-bottom:7px; padding-left:14px; position:relative;}
+  .zcols li::before{content:"\2192"; position:absolute; left:0;}
+  .qw .ct,.qw li::before{color:var(--cyan);} .ltc .ct,.ltc li::before{color:var(--green);}
+
+  /* ── roadmap: CSS-only tabs (radio + :checked) ── */
+  .rtabs{display:flex; border:1.5px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:18px;}
+  .rtabs label{flex:1; text-align:center; padding:13px 0; font-size:14.5px; font-weight:700; letter-spacing:0.03em;
+    color:var(--dim); cursor:pointer; border-left:1px solid var(--line);}
+  .rtabs label:first-child{border-left:none;}
+  .roadmap input{position:absolute; opacity:0; pointer-events:none;}
+  .rpanel{display:none;}
+  .rmeta{font-size:14.5px; font-style:italic; color:var(--dim); margin-bottom:20px; line-height:1.5;}
+  .rgrid{display:grid; grid-template-columns:1fr; gap:14px;}
+  @media(min-width:430px){.rgrid{grid-template-columns:1fr 1fr;}}
+  .rcard{border:1px solid var(--line); border-top:3px solid var(--cyan); border-radius:7px; padding:16px 17px; background:var(--card);}
+  .rcard.bus{border-top-color:var(--cyan);} .rcard.metro{border-top-color:var(--blue);} .rcard.sys{border-top-color:var(--green);}
+  .rcard .tag{font-family:var(--mono); font-size:10px; letter-spacing:0.12em; font-weight:700;}
+  .rcard.bus .tag{color:var(--cyan);} .rcard.metro .tag{color:var(--blue);} .rcard.sys .tag{color:var(--green);}
+  .rcard h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:8px 0 7px; line-height:1.22;}
+  .rcard p{margin:0; font-size:13px; color:var(--dim); line-height:1.5;}
+  #r-y1:checked ~ .rtabs label[for=r-y1],
+  #r-y3:checked ~ .rtabs label[for=r-y3],
+  #r-lt:checked ~ .rtabs label[for=r-lt]{background:var(--cyan); color:var(--bg0);}
+  #r-y1:checked ~ .rpanel.y1,
+  #r-y3:checked ~ .rpanel.y3,
+  #r-lt:checked ~ .rpanel.lt{display:block;}
+
+  /* ── hero + close ── */
+  .hero{min-height:88vh; display:flex; flex-direction:column; justify-content:center; text-align:center; padding:40px 0;}
+  .hero .yr{font-family:var(--mono); font-size:13px; letter-spacing:0.3em; text-transform:uppercase; color:var(--cyan);}
+  .hero h1{font-family:var(--serif); font-weight:700; font-size:48px; line-height:1.06; letter-spacing:-0.02em; margin:18px 0;}
+  .hero .rule{width:160px; height:2px; background:var(--cyan); margin:8px auto 24px; box-shadow:0 0 14px var(--cyan);}
+  .hero .lede{font-family:var(--serif); font-size:21px; font-style:italic; color:var(--dim); line-height:1.5;}
+  .hero .hint{font-family:var(--mono); font-size:11.5px; letter-spacing:0.08em; color:var(--faint); margin-top:34px; line-height:1.8;}
+  .close{text-align:center; padding:60px 0 30px;}
+  .close .big{display:flex; flex-direction:column; gap:22px; margin:30px 0 40px;}
+  .close .big .r{display:flex; align-items:baseline; gap:18px; justify-content:center;}
+  .close .big .n{font-family:var(--serif); font-weight:700; font-size:40px; color:var(--cyan); line-height:1; width:130px; text-align:right;}
+  .close .big .l{font-size:15px; color:var(--dim); text-align:left; flex:1; max-width:230px;}
+  .close .final{font-family:var(--serif); font-size:21px; font-style:italic; line-height:1.5; margin-top:30px;}
+
+  footer{text-align:center; font-family:var(--mono); font-size:11px; color:var(--faint); line-height:1.8; padding:50px 0 10px; border-top:1px solid var(--line); margin-top:40px;}
+
+  .jsbanner{background:rgba(38,199,230,0.08); border:1px solid var(--cyanDk); border-radius:8px;
+    padding:13px 16px; margin:18px 0 0; font-size:13px; color:var(--dim);}
+  .jsbanner b{color:var(--cyan);}
+</style>
+</head>
+<body>
+
+<div class="topbar"><b>MOVING BENGALURU</b><span>NO-JS FACT BASE</span></div>
+
+<div class="wrap">
+
+  <!-- OPEN -->
+  <header class="hero">
+    <div class="yr">Bengaluru · 2026</div>
+    <h1>The city that<br>stopped moving.</h1>
+    <div class="rule"></div>
+    <div class="lede">1.4 crore people. 1.23 crore vehicles. Zero kilometres of the one fix that works — and a way out the data makes plain.</div>
+    <div class="hint">▾ SCROLL THE FULL FACT BASE<br>TAP ZONES &amp; ROADMAP TABS TO EXPLORE<br>— NO APP, NO JAVASCRIPT NEEDED —</div>
+  </header>
+
+  <!-- GRIDLOCK -->
+  <section>
+    <div class="kicker"><i style="background:var(--red)"></i><span style="color:var(--red)">Act I · Gridlock</span></div>
+    <h2>10 km. 34 minutes. 17.6 km/h.</h2>
+    <p class="sub">A 10 km trip in central Bengaluru takes longer than almost anywhere on earth — India's worst congestion after Kolkata (TomTom, 2024).</p>
+    <div class="bars">
+      <div class="bar"><div class="row"><span class="lab">Kolkata</span><span class="val">34.6 min</span></div><div class="track"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">Bengaluru</span><span class="val">34.2 min</span></div><div class="track"><i class="fill" style="width:98.9%;background:var(--red);box-shadow:0 0 22px rgba(242,100,63,.4)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Pune</span><span class="val">33.4 min</span></div><div class="track"><i class="fill" style="width:96.6%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Hyderabad</span><span class="val">32.0 min</span></div><div class="track"><i class="fill" style="width:92.6%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Chennai</span><span class="val">30.0 min</span></div><div class="track"><i class="fill" style="width:86.8%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Mumbai</span><span class="val">29.0 min</span></div><div class="track"><i class="fill" style="width:83.9%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Delhi</span><span class="val">23.0 min</span></div><div class="track"><i class="fill" style="width:66.5%;background:var(--slate)"></i></div></div>
+    </div>
+    <p class="note rd">Minutes to travel 10 km in the city core — about <b>17.6 km/h</b> in Bengaluru, India's 2nd-slowest city.</p>
+    <div class="chips" style="margin-top:30px">
+      <div class="chip rd"><div class="n">772</div><div class="l">road deaths in 2022</div><div class="c">Incl. 247 pedestrians (+50% YoY) — 2nd-highest among India's million-plus cities.</div></div>
+      <div class="chip am"><div class="n">1.23<small>cr</small></div><div class="l">registered vehicles</div><div class="c">+7.22 lakh added in 2024–25 alone, as the roads seize up.</div></div>
+    </div>
+  </section>
+
+  <!-- WATER -->
+  <section>
+    <div class="kicker"><i style="background:var(--blue)"></i><span style="color:var(--blue)">Act I · Water &amp; sanitation</span></div>
+    <h2>Water pumped 90 km uphill — a third of sewage treated.</h2>
+    <p class="sub">The plumbing is under strain too: supply below the metro benchmark, and most sewage flows untreated.</p>
+    <div class="bars">
+      <div class="bar"><div class="row"><span class="lab">Benchmark (metro)</span><span class="val">150 LPCD</span></div><div class="track"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">MoHUA norm</span><span class="val">135 LPCD</span></div><div class="track"><i class="fill" style="width:90%;background:var(--slateDk)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">Bengaluru (high)</span><span class="val">125 LPCD</span></div><div class="track"><i class="fill" style="width:83.3%;background:var(--cyan)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">Bengaluru (low)</span><span class="val">100 LPCD</span></div><div class="track"><i class="fill" style="width:66.7%;background:var(--cyan)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Chennai</span><span class="val">90 LPCD</span></div><div class="track"><i class="fill" style="width:60%;background:var(--amber)"></i></div></div>
+    </div>
+    <p class="note bl">Litres per capita per day. Bengaluru (100–125) sits below the 150 LPCD benchmark, with supply pumped <b>~90 km uphill</b> from the Cauvery.</p>
+    <div style="margin-top:30px">
+      <div class="ml" style="color:var(--blue)">THE SEWAGE FUNNEL · MLD</div>
+      <div class="funnel">
+        <div><div class="flab"><span>Sewage generated</span><b>72,368</b></div><div class="fbar"><i style="width:100%;background:var(--slate)"></i></div></div>
+        <div><div class="flab"><span>Installed capacity</span><b>31,841</b></div><div class="fbar"><i style="width:44%;background:var(--blue)"></i></div></div>
+        <div><div class="flab" style="color:var(--ink)"><span style="font-weight:700">Actually treated</span><b style="color:var(--red)">20,235</b></div><div class="fbar"><i style="width:28%;background:var(--red)"></i></div></div>
+      </div>
+      <p class="note rd">Nationally only <b>~28%</b> of sewage is treated. One bright spot: Bengaluru's PM2.5 (34 µg/m³) is cleaner than Mumbai or Kolkata.</p>
+    </div>
+  </section>
+
+  <!-- MODE -->
+  <section>
+    <div class="kicker"><i style="background:var(--cyan)"></i><span style="color:var(--cyan)">Act II · How Bengaluru moves</span></div>
+    <h2>Public transport carries under a third of trips.</h2>
+    <p class="sub">Two-wheelers and cars together (~34%) already out-carry it — and Bengaluru has no stretch target.</p>
+    <div class="donut-wrap">
+      <div class="donut"><div class="ctr"><div class="pct">32%</div><div class="pl">Public transport</div></div></div>
+      <div class="legend">
+        <div><i style="background:var(--cyan)"></i>Public transport <b>32%</b></div>
+        <div><i style="background:var(--blue)"></i>Two-wheeler <b>27%</b></div>
+        <div><i style="background:var(--green)"></i>Walk / cycle <b>26%</b></div>
+        <div><i style="background:var(--slate)"></i>Car <b>7%</b></div>
+        <div><i style="background:var(--slateDk)"></i>Auto / other <b>8%</b></div>
+      </div>
+    </div>
+    <div class="bars" style="margin-top:34px">
+      <div class="bar"><div class="row"><span class="lab">Delhi</span><span class="val">50%</span></div><div class="track"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Bangkok</span><span class="val">40%</span></div><div class="track"><i class="fill" style="width:80%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Bogotá</span><span class="val">35%</span></div><div class="track"><i class="fill" style="width:70%;background:var(--slate)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">Bengaluru</span><span class="val">32%</span></div><div class="track"><i class="fill" style="width:64%;background:var(--cyan)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Jakarta (2019)</span><span class="val">25%</span></div><div class="track"><i class="fill" style="width:50%;background:var(--slate)"></i></div></div>
+    </div>
+    <p class="note cy">Public-transport mode share vs peer megacities. Jakarta now targets <b>60% by 2029</b> — the ambition gap.</p>
+  </section>
+
+  <!-- BUS -->
+  <section>
+    <div class="kicker"><i style="background:var(--cyan)"></i><span style="color:var(--cyan)">Act II · The hidden strength</span></div>
+    <h2>Yet Bengaluru runs India's best bus system.</h2>
+    <p class="sub">The plot twist: BMTC is the country's largest, best-utilised city bus operator — ~44 lakh riders a day, far more than the metro.</p>
+    <div class="chips">
+      <div class="chip"><div class="n">7,000+</div><div class="l">buses in the fleet</div><div class="c">India's largest city bus system</div></div>
+      <div class="chip"><div class="n">~44 L</div><div class="l">riders / day</div><div class="c">vs ~10 lakh on the metro</div></div>
+      <div class="chip gr"><div class="n">91%</div><div class="l">fleet utilisation</div><div class="c">best of India's big operators</div></div>
+    </div>
+    <div class="bars" style="margin-top:32px">
+      <div class="bar focus"><div class="row"><span class="lab">Bengaluru</span><span class="val">50 /lakh</span></div><div class="track"><i class="fill" style="width:100%;background:var(--cyan)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Delhi</span><span class="val">45 /lakh</span></div><div class="track"><i class="fill" style="width:90%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Mumbai</span><span class="val">21.6 /lakh</span></div><div class="track"><i class="fill" style="width:43.2%;background:var(--slate)"></i></div></div>
+    </div>
+    <p class="note cy">Buses per lakh people. The national norm is <b>40–60</b> — only Bengaluru clears it.</p>
+    <div style="display:flex;align-items:center;gap:20px;margin-top:26px">
+      <div style="flex-shrink:0;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--green) 0 22.4%, var(--track) 22.4% 100%);position:relative">
+        <div style="position:absolute;inset:13px;border-radius:50%;background:var(--bg0);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:20px">~22%</div>
+      </div>
+      <div style="font-size:14.5px;color:var(--dim);line-height:1.5"><b style="color:var(--ink)">1,568 electric buses</b> — about one in five, with more on order. One of India's faster transitions.</div>
+    </div>
+  </section>
+
+  <!-- METRO -->
+  <section>
+    <div class="kicker"><i style="background:var(--blue)"></i><span style="color:var(--blue)">Act II · The metro</span></div>
+    <h2>Efficient — but too small to reach the city.</h2>
+    <p class="sub">Namma Metro is a firm #2 in India and each km is well-used. The limit isn't demand — it's reach: 96 km for a 1.4-crore sprawl.</p>
+    <div class="bars">
+      <div class="bar"><div class="row"><span class="lab">Delhi</span><span class="val">65 L</span></div><div class="track"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">Bengaluru</span><span class="val">10 L</span></div><div class="track"><i class="fill" style="width:15.4%;background:var(--blue)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Mumbai</span><span class="val">8.5 L</span></div><div class="track"><i class="fill" style="width:13.1%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Hyderabad</span><span class="val">4.7 L</span></div><div class="track"><i class="fill" style="width:7.2%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Chennai</span><span class="val">3.2 L</span></div><div class="track"><i class="fill" style="width:4.9%;background:var(--slate)"></i></div></div>
+    </div>
+    <p class="note bl">Daily metro ridership (lakh). Bengaluru is clear #2 — but Delhi is in another league.</p>
+    <div style="margin-top:28px">
+      <div class="ml" style="color:var(--blue)">RIDERS PER KM OF NETWORK</div>
+      <div class="bars" style="margin-top:14px">
+        <div class="bar"><div class="row"><span class="lab">Delhi</span><span class="val">16,500</span></div><div class="track"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+        <div class="bar focus"><div class="row"><span class="lab">Bengaluru</span><span class="val">10,400</span></div><div class="track"><i class="fill" style="width:63%;background:var(--blue)"></i></div></div>
+        <div class="bar"><div class="row"><span class="lab">Hyderabad</span><span class="val">6,800</span></div><div class="track"><i class="fill" style="width:41.2%;background:var(--slate)"></i></div></div>
+        <div class="bar"><div class="row"><span class="lab">Chennai</span><span class="val">5,900</span></div><div class="track"><i class="fill" style="width:35.8%;background:var(--slate)"></i></div></div>
+      </div>
+      <p class="note bl">Each km is well-used — Bengaluru beats Hyderabad and Chennai. <b>Reach, not demand, is the limit:</b> a station 4 km from home isn't a usable station.</p>
+    </div>
+  </section>
+
+  <!-- BRT -->
+  <section>
+    <div class="kicker"><i style="background:var(--red)"></i><span style="color:var(--red)">Act II · The gap</span></div>
+    <h2>The cheapest big fix? Bengaluru has zero of it.</h2>
+    <p class="sub">Bus Rapid Transit is the move Jakarta and Bogotá used to leap ahead — dedicated lanes carrying metro-scale crowds. Bengaluru has built none.</p>
+    <div class="bars">
+      <div class="bar"><div class="row"><span class="lab">Jakarta</span><span class="val">251 km</span></div><div class="track" style="height:42px"><i class="fill" style="width:100%;background:var(--cyan)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Bogotá</span><span class="val">114 km</span></div><div class="track" style="height:42px"><i class="fill" style="width:45.4%;background:var(--cyan)"></i></div></div>
+      <div class="bar zero focus"><div class="row"><span class="lab">Bengaluru</span><span class="val">0 km</span></div><div class="track" style="height:42px"><span class="none">NONE BUILT</span></div></div>
+    </div>
+    <p class="note rd">Kilometres of dedicated Bus Rapid Transit. Bengaluru's bar simply isn't there.</p>
+    <div style="text-align:center;margin-top:34px">
+      <div style="font-family:var(--serif);font-weight:700;font-size:72px;color:var(--cyan);line-height:1">2.3M</div>
+      <div style="font-size:15px;color:var(--dim);margin-top:12px;line-height:1.5">daily riders on Bogotá's BRT alone — on just 114 km of dedicated lanes. The fastest, cheapest mobility win available, and it remains unbuilt.</div>
+    </div>
+  </section>
+
+  <!-- CAPEX -->
+  <section>
+    <div class="kicker"><i style="background:var(--amber)"></i><span style="color:var(--amber)">Act II · The math</span></div>
+    <h2>1 km of metro buys 40 km of BRT.</h2>
+    <p class="sub">Capital cost is why sequencing matters. The same budget for one metro km could lay a whole rapid-bus corridor across the city.</p>
+    <div class="bars">
+      <div class="bar"><div class="row"><span class="lab">Metro</span><span class="val">₹541 cr/km</span></div><div class="track"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">Suburban rail</span><span class="val">₹106 cr/km</span></div><div class="track"><i class="fill" style="width:19.6%;background:var(--slateDk)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">BRT</span><span class="val">₹13.5 cr/km</span></div><div class="track"><i class="fill" style="width:2.5%;background:var(--cyan)"></i></div></div>
+    </div>
+    <p class="note cy">Capital cost per km. BRT is roughly <b>one-fortieth</b> the cost of metro, and far faster to build.</p>
+    <div style="margin-top:30px">
+      <div class="ml" style="color:var(--amber)">WHAT ONE METRO-KM'S BUDGET BUYS</div>
+      <div class="buy"><div class="h"><span class="m">Metro</span><span class="km">1 km</span></div><div class="dots"><i></i></div></div>
+      <div class="buy"><div class="h"><span class="m">Suburban rail</span><span class="km">5 km</span></div><div class="dots"><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="buy on"><div class="h"><span class="m">BRT</span><span class="km">40 km</span></div><div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+      <p class="note" style="font-style:italic;border:none;padding-left:0;color:var(--faint);margin-top:14px">Build the cheap, high-impact network first — then the spine.</p>
+    </div>
+  </section>
+
+  <!-- SHAKTI -->
+  <section>
+    <div class="kicker"><i style="background:var(--green)"></i><span style="color:var(--green)">Act II · The free-bus debate</span></div>
+    <h2>Free buses didn't break BMTC's finances.</h2>
+    <p class="sub">The Shakti scheme gave women free travel — and got blamed for losses. The data disagrees: net losses are the lowest since COVID.</p>
+    <div class="bars">
+      <div class="bar"><div class="row"><span class="lab">FY22-23 · pre-Shakti</span><span class="val">40%</span></div><div class="track" style="height:34px"><i class="fill" style="width:100%;background:var(--slate)"></i></div></div>
+      <div class="bar"><div class="row"><span class="lab">FY23-24 · Shakti</span><span class="val">16%</span></div><div class="track" style="height:34px"><i class="fill" style="width:40%;background:var(--slate)"></i></div></div>
+      <div class="bar focus"><div class="row"><span class="lab">FY24-25 · Shakti</span><span class="val">14%</span></div><div class="track" style="height:34px"><i class="fill" style="width:35%;background:var(--green)"></i></div></div>
+    </div>
+    <p class="note gr">Government reimbursement as a share of BMTC's costs — it fell from <b>40% to 14%</b>. Free travel didn't sink the finances.</p>
+    <div style="border:1px solid var(--line);border-top:3px solid var(--green);border-radius:8px;padding:20px;background:var(--card);margin-top:28px">
+      <div class="ml" style="color:var(--green)">THE HONEST QUESTION</div>
+      <div style="font-family:var(--serif);font-size:21px;margin:11px 0 11px;line-height:1.32">Not "free vs paid" — but who funds the subsidy, and is service investment protected?</div>
+      <p style="margin:0;font-size:14px;color:var(--dim);line-height:1.55">The real strains are a Jan-2025 fare hike on other riders and chronic under-investment. The fix: fund concessions from the state budget as a transparent line item, ring-fence a dedicated transport fund, and grow non-fare revenue (land value capture / TOD).</p>
+    </div>
+  </section>
+
+  <!-- ZONES -->
+  <section>
+    <div class="kicker"><i style="background:var(--red)"></i><span style="color:var(--red)">Act III · Zone stress map</span></div>
+    <h2>Eight zones. The IT-corridor east hurts most.</h2>
+    <p class="sub">A composite of congestion, density and transit-gap. The IT-corridor east — Mahadevapura and Bommanahalli — tops the list, where jobs have raced far ahead of transit.</p>
+    <div class="zlegend">
+      <span><i style="background:var(--red)"></i>High (80+)</span>
+      <span><i style="background:var(--amber)"></i>Elevated (70–79)</span>
+      <span><i style="background:var(--green)"></i>Moderate (&lt;70)</span>
+      <span style="color:var(--faint)">· tap a zone to expand</span>
+    </div>
+    <div id="zones">
+      <details class="zone hi" open>
+        <summary>
+          <div class="zscore zhi">86</div>
+          <div class="zmeta"><div class="nm">Mahadevapura</div><div class="rg">East · IT corridor · 26 wards</div></div>
+          <div class="zrank">RANK<br>#1/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>95</b></div><div class="tk"><i style="width:95%;background:var(--red)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>70</b></div><div class="tk"><i style="width:70%;background:var(--amber)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>85</b></div><div class="tk"><i style="width:85%;background:var(--red)"></i></div></div>
+          </div>
+          <p class="hot">ORR tech corridor — Marathahalli, Bellandur, KR Puram. Among India's worst gridlock; jobs far outpace transit.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> Purple Line reaches Whitefield, but ORR / Bellandur / Sarjapur have no metro yet (Blue Line under construction).</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Bus-priority lane on ORR (Silk Board–KR Puram) with high-frequency feeders to Whitefield metro.</li><li>Staggered work hours + pooled tech-park shuttles across ORR employers.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>Complete the ORR–Airport (Blue Line) metro.</li><li>TOD, junction redesign and footpaths at Bellandur / Marathahalli.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone md">
+        <summary>
+          <div class="zscore zmd">75</div>
+          <div class="zmeta"><div class="nm">Bommanahalli</div><div class="rg">South-east · 27 wards</div></div>
+          <div class="zrank">RANK<br>#2/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>90</b></div><div class="tk"><i style="width:90%;background:var(--red)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>65</b></div><div class="tk"><i style="width:65%;background:var(--green)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>55</b></div><div class="tk"><i style="width:55%;background:var(--green)"></i></div></div>
+          </div>
+          <p class="hot">Silk Board junction — ~4.5 km/h at peak, among India's worst; gateway to Electronic City and the ORR.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> New Yellow Line (2025) serves Silk Board–Electronic City; HSR / Sarjapur side still a gap.</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Feeder buses from HSR & Electronic City to new Yellow Line stations.</li><li>Silk Board ramp/signal optimisation + dedicated bus bays.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>TOD around Electronic City Yellow Line stations.</li><li>Sarjapur Road mass transit + complete streets.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone md">
+        <summary>
+          <div class="zscore zmd">70</div>
+          <div class="zmeta"><div class="nm">East</div><div class="rg">Central · CBD · 47 wards</div></div>
+          <div class="zrank">RANK<br>#3/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>80</b></div><div class="tk"><i style="width:80%;background:var(--red)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>85</b></div><div class="tk"><i style="width:85%;background:var(--red)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>35</b></div><div class="tk"><i style="width:35%;background:var(--green)"></i></div></div>
+          </div>
+          <p class="hot">Commercial core — MG Road, Indiranagar, Shivajinagar. Dense, with very high trip attraction.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> Well served by the Purple Line (MG Road, Indiranagar, Baiyappanahalli).</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Paid parking + pedestrian pilots on MG Rd / Indiranagar 100ft Rd.</li><li>Last-mile e-autos and cycles at Purple Line stations.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>A transit-priority, low-traffic CBD zone.</li><li>Off-street parking + timed freight to decongest the core.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone lo">
+        <summary>
+          <div class="zscore zlo">69</div>
+          <div class="zmeta"><div class="nm">South</div><div class="rg">South-central · 48 wards</div></div>
+          <div class="zrank">RANK<br>#4/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>75</b></div><div class="tk"><i style="width:75%;background:var(--amber)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>85</b></div><div class="tk"><i style="width:85%;background:var(--red)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>40</b></div><div class="tk"><i style="width:40%;background:var(--green)"></i></div></div>
+          </div>
+          <p class="hot">Dense residential-commercial — Jayanagar, BTM, Banashankari, Bannerghatta Road.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> Green + Yellow lines give decent coverage; Bannerghatta Road is the main gap.</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Bus lanes + frequency boost on Bannerghatta Road.</li><li>Seamless Green–Yellow interchange and last-mile links.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>Bannerghatta Road metro extension + TOD.</li><li>Neighbourhood walkability and safe-crossing programme.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone lo">
+        <summary>
+          <div class="zscore zlo">65</div>
+          <div class="zmeta"><div class="nm">Yelahanka</div><div class="rg">North · 15 wards</div></div>
+          <div class="zrank">RANK<br>#5/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>70</b></div><div class="tk"><i style="width:70%;background:var(--amber)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>40</b></div><div class="tk"><i style="width:40%;background:var(--green)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>80</b></div><div class="tk"><i style="width:80%;background:var(--red)"></i></div></div>
+          </div>
+          <p class="hot">Hebbal junction and airport-road peaks; among the fastest-growing peripheries.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> No operational metro yet — the Airport (Blue) Line is under construction.</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>High-frequency feeder buses: Hebbal–airport–ITPL.</li><li>Bus priority and throughput fixes at Hebbal junction.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>Operationalise the Airport Metro + suburban-rail corridor.</li><li>TOD-led peripheral growth to avoid car dependence.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone lo">
+        <summary>
+          <div class="zscore zlo">65</div>
+          <div class="zmeta"><div class="nm">West</div><div class="rg">West-central · 46 wards</div></div>
+          <div class="zrank">RANK<br>#6/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>70</b></div><div class="tk"><i style="width:70%;background:var(--amber)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>80</b></div><div class="tk"><i style="width:80%;background:var(--red)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>40</b></div><div class="tk"><i style="width:40%;background:var(--green)"></i></div></div>
+          </div>
+          <p class="hot">Yeshwantpur, Rajajinagar, Malleshwaram; heavy wholesale-market and rail-freight movement.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> Green + Purple lines serve the spine well.</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Bus priority around Yeshwantpur / goods-shed area.</li><li>Last-mile connections at Green & Purple stations.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>Rationalise wholesale-market and freight movement.</li><li>TOD intensification along the Green Line.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone lo">
+        <summary>
+          <div class="zscore zlo">61</div>
+          <div class="zmeta"><div class="nm">Dasarahalli</div><div class="rg">North-west · 12 wards</div></div>
+          <div class="zrank">RANK<br>#7/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>65</b></div><div class="tk"><i style="width:65%;background:var(--green)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>70</b></div><div class="tk"><i style="width:70%;background:var(--amber)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>45</b></div><div class="tk"><i style="width:45%;background:var(--green)"></i></div></div>
+          </div>
+          <p class="hot">Peenya industrial belt and Tumkur Road freight congestion.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> Green Line (Peenya, Jalahalli, Madavara) gives reasonable coverage.</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Peenya industrial-area shuttle + Tumkur Road bus priority.</li><li>Truck-movement time windows.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>Suburban rail on the Tumkur Road corridor.</li><li>Industrial-area street & footpath upgrades.</li></ul></div>
+          </div>
+        </div>
+      </details>
+      <details class="zone lo">
+        <summary>
+          <div class="zscore zlo">58</div>
+          <div class="zmeta"><div class="nm">RR Nagar</div><div class="rg">South-west · 22 wards</div></div>
+          <div class="zrank">RANK<br>#8/8</div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="zbody">
+          <div class="zmetrics">
+            <div class="mt"><div class="t"><span>Congestion</span><b>60</b></div><div class="tk"><i style="width:60%;background:var(--green)"></i></div></div>
+            <div class="mt"><div class="t"><span>Density</span><b>55</b></div><div class="tk"><i style="width:55%;background:var(--green)"></i></div></div>
+            <div class="mt"><div class="t"><span>Transit gap</span><b>55</b></div><div class="tk"><i style="width:55%;background:var(--green)"></i></div></div>
+          </div>
+          <p class="hot">Kengeri, RR Nagar, Mysuru Road; a large zone with thin coverage off the main corridor.</p>
+          <p class="met"><b style="color:var(--cyan)">Metro:</b> Purple Line serves Kengeri–Challaghatta; coverage thins away from the spine.</p>
+          <div class="zcols">
+            <div class="col qw"><div class="ct">QUICK WINS</div><ul><li>Feeder buses to the Purple Line (Kengeri / Challaghatta).</li><li>Mysuru Road bus priority.</li></ul></div>
+            <div class="col ltc"><div class="ct">LONG-TERM</div><ul><li>TOD around Kengeri terminal + suburban rail.</li><li>Transit-first planning for west-corridor growth.</li></ul></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section>
+    <div class="kicker"><i style="background:var(--cyan)"></i><span style="color:var(--cyan)">Act IV · A phased plan</span></div>
+    <h2>The way out, in three horizons.</h2>
+    <div class="roadmap">
+      <input type="radio" name="rm" id="r-y1" checked>
+      <input type="radio" name="rm" id="r-y3">
+      <input type="radio" name="rm" id="r-lt">
+      <div class="rtabs">
+        <label for="r-y1">1 Year</label>
+        <label for="r-y3">3 Years</label>
+        <label for="r-lt">Long-term</label>
+      </div>
+      <div class="rpanel y1">
+        <div class="rmeta">Low-capex moves within ~12 months — operations, road-space reallocation, integration.</div>
+        <div class="rgrid">
+        <div class="rcard bus"><div class="tag">BUS</div><h4>Add 1,500–2,500 feeder buses</h4><p>Routes that feed metro stations and underserved peripheries, toward the upper end of the norm.</p></div>
+        <div class="rcard bus"><div class="tag">BUS</div><h4>Bus-priority lanes, 10 worst corridors</h4><p>Paint-and-bollard priority on ORR, Whitefield, Hosur Rd — the cheapest way to speed 44 lakh daily bus trips.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>One card, one fare, timed transfers</h4><p>Integrate BMTC + metro ticketing so a bus-to-metro trip is seamless, not double-charged.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>Real-time tracking + open data</h4><p>Citywide live bus tracking, open GTFS feeds, and a public reliability dashboard.</p></div>
+        <div class="rcard metro"><div class="tag">METRO</div><h4>More peak capacity + park-and-ride</h4><p>Six-car trains, tighter headways; cycle docks and park-and-ride at every station.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>Operationalise the BMLTA</h4><p>Give the unified metropolitan transport authority real budget, staff and power over all modes.</p></div></div>
+      </div>
+      <div class="rpanel y3">
+        <div class="rmeta">Capital build-out over ~2–4 years — network expansion, electrification, a real rapid-bus backbone.</div>
+        <div class="rgrid">
+        <div class="rcard metro"><div class="tag">METRO</div><h4>Finish Phase 2 → ~170 km</h4><p>Complete the 75 km Phase 2, target 20–25 lakh daily riders, begin Phase 3 (ORR & airport).</p></div>
+        <div class="rcard bus"><div class="tag">BUS</div><h4>Build a real BRT backbone</h4><p>Bengaluru’s first segregated BRT trunk corridors — the Jakarta/Bogotá move it never made.</p></div>
+        <div class="rcard bus"><div class="tag">BUS</div><h4>Fleet to 10–12k, mostly electric</h4><p>Scale and electrify the fleet with new depots and charging; aim for majority-electric.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>Distance-based unified fares</h4><p>A single distance-based fare across bus + metro + suburban rail, with monthly passes.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>Open suburban-rail corridors 2 & 4</h4><p>Push the 54.9 km under construction to operation; unblock the stalled land acquisition.</p></div>
+        <div class="rcard metro"><div class="tag">METRO</div><h4>TOD + value capture at stations</h4><p>Transit-oriented zoning and land-value capture to densify ridership and fund transit.</p></div></div>
+      </div>
+      <div class="rpanel lt">
+        <div class="rmeta">Structural 5–10+ year change — a mature, integrated, financially self-sustaining network.</div>
+        <div class="rgrid">
+        <div class="rcard metro"><div class="tag">METRO</div><h4>Metro network 175+ km</h4><p>Complete Phase 3/3A so most of the metro area is within walking distance of frequent rail.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>Full 148 km suburban rail</h4><p>A completed commuter-rail spine integrated with metro and bus for regional trips.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>50%+ public + non-motorised</h4><p>A binding, time-bound target that reverses private-vehicle dominance.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>TOD-led, walkable land use</h4><p>Dense, mixed-use, walkable development along every transit corridor.</p></div>
+        <div class="rcard sys"><div class="tag">SYSTEM</div><h4>Self-sustaining transit finance</h4><p>A dedicated Urban Transport Fund plus value capture and non-fare revenue.</p></div>
+        <div class="rcard bus"><div class="tag">BUS</div><h4>Zero-emission fleet + 500 m access</h4><p>100% electric buses; every resident within 500 m of frequent public transport.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSE -->
+  <section class="close">
+    <div class="kicker" style="justify-content:center"><span style="color:var(--cyan)">Act IV · The way out</span></div>
+    <h2 style="font-size:34px">Give the buses road space. Build the spine. Reverse the slide.</h2>
+    <div class="rule" style="margin:24px auto"></div>
+    <div class="big">
+      <div class="r"><div class="n">50%+</div><div class="l">public + non-motorised mode-share target</div></div>
+      <div class="r"><div class="n">₹13.5 cr</div><div class="l">per km of BRT — start here, now</div></div>
+      <div class="r"><div class="n">~170 km</div><div class="l">metro spine within reach by Phase 2</div></div>
+    </div>
+    <div class="final">The fact base makes the case. The choice is political — and the cheapest, fastest wins are available today.</div>
+  </section>
+
+  <footer>
+    MOVING BENGALURU · A MOBILITY FACT BASE<br>
+    Sources: TomTom · MoRTH · BMTC · BMRCL · BWSSB · CPCB · TransJakarta · TransMilenio
+    <div class="jsbanner">This is the <b>no-JavaScript edition</b> — every figure renders with HTML &amp; CSS only, so it works on any phone even with scripts disabled or blocked. The animated, scrubbable version is a separate file.</div>
+  </footer>
+
+</div>
+
+
+</body>
+</html>

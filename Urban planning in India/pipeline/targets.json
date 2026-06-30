@@ -1,0 +1,8 @@
+{
+  "_note": "Maps each canonical dataset id to the artifact file and JS variable it feeds. Paths are relative to the project root (the folder that contains this 'pipeline' directory).",
+  "targets": [
+    { "id": "livability_data",  "file": "Bengaluru Livability Dashboard - Traffic & Water.html", "var": "DATA" },
+    { "id": "mobility_data",     "file": "Bengaluru Mobility Dashboard - Metro & Bus.html",       "var": "DATA" },
+    { "id": "mobility_roadmap",  "file": "Bengaluru Mobility Dashboard - Metro & Bus.html",       "var": "ROADMAP" },
+    { "id": "zones",             "file": "Bengaluru Zone Traffic Drilldown.html",                 "var": "ZONES" },
+    {

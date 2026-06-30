@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moving Bengaluru — Metro &amp; Bus Performance Review</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/gridjs.umd.js" integrity="sha384-/XXDzxe4FsGiAe50i/u9pY/Vy/uX654MHB1xoc1BJNnH1WXHhqHga9g3q5tF4gj7" crossorigin="anonymous"></script>
+<style>
+:root{
+  color-scheme: light;
+  --navy:#051C2C;        /* primary ink */
+  --navy-2:#1A2E3B;
+  --blue:#1463A8;        /* primary accent */
+  --cyan:#00A1D6;        /* focal highlight */
+  --cyan-soft:#E4F4FB;
+  --slate:#B9C4CD;       /* comparison bars */
+  --slate-2:#8B9AA5;
+  --muted:#5E6E79;
+  --line:#E3E8EC;
+  --line-2:#D3DADF;
+  --bg:#FFFFFF;
+  --panel:#F6F8F9;
+  --card:#FFFFFF;
+  --red:#B23A20;
+  --green:#1C7A52;
+  --amber:#B5810F;
+  --serif:Georgia,"Times New Roman",'Times',serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--navy);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:14px}
+.topbar{height:4px;background:var(--navy)}
+.topbar i{display:block;height:100%;width:34%;background:var(--cyan)}
+.wrap{max-width:1080px;margin:0 auto;padding:30px 26px 64px}
+
+/* Masthead */
+.kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);font-weight:700}
+h1.title{font-family:var(--serif);font-weight:700;font-size:32px;line-height:1.18;margin:10px 0 8px;letter-spacing:-.01em;color:var(--navy)}
+.standfirst{color:var(--muted);font-size:15.5px;max-width:760px;line-height:1.6}
+.meta-rule{display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--slate-2);letter-spacing:.04em;text-transform:uppercase}
+.meta-rule b{color:var(--navy);font-weight:700}
+
+/* Executive summary */
+.exec{background:var(--navy);color:#fff;border-radius:3px;padding:24px 26px;margin:22px 0 6px}
+.exec .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:700;margin-bottom:10px}
+.exec p{margin:0;font-size:15px;line-height:1.62;color:#E8EEF1;font-family:var(--serif)}
+.exec p strong{color:#fff}
+
+/* Section nav */
+.nav{display:flex;gap:0;margin:26px 0 22px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.tab{border:none;background:none;font:inherit;cursor:pointer;padding:12px 16px 13px;color:var(--slate-2);
+  font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:baseline;gap:8px}
+.tab .n{font-family:var(--serif);font-size:12px;color:var(--slate);font-weight:400}
+.tab:hover{color:var(--navy)}
+.tab.active{color:var(--navy);border-bottom-color:var(--cyan)}
+.tab.active .n{color:var(--cyan)}
+.panel{display:none;animation:fade .25s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* Stat row */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-bottom:26px;background:var(--card)}
+.stat{padding:18px 20px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:none}
+.stat .top{height:3px;width:30px;background:var(--cyan);margin-bottom:13px}
+.stat.r .top{background:var(--red)}.stat.g .top{background:var(--green)}.stat.b .top{background:var(--blue)}.stat.a .top{background:var(--amber)}
+.stat .num{font-family:var(--serif);font-size:27px;font-weight:700;line-height:1;color:var(--navy);letter-spacing:-.01em}
+.stat .lbl{font-size:12px;color:var(--navy-2);margin-top:8px;font-weight:600;line-height:1.35}
+.stat .ctx{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.4}
+@media(max-width:720px){.stat{border-left:none;border-top:1px solid var(--line)}.stat:first-child{border-top:none}}
+
+/* Exhibit cards */
+.exhibit{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:22px 24px 20px;margin-bottom:20px}
+.ex-lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);font-weight:700}
+.exhibit h3{font-family:var(--serif);font-weight:700;font-size:18px;line-height:1.3;margin:7px 0 3px;color:var(--navy);letter-spacing:-.005em}
+.exhibit .sub{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.5}
+.chart-box{position:relative;height:320px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}.chart-box{height:290px}}
+.src{font-size:11px;color:var(--slate-2);margin-top:14px;padding-top:11px;border-top:1px solid var(--line);font-style:italic}
+.src a{color:var(--blue);text-decoration:none}.src a:hover{text-decoration:underline}
+.intro-note{font-size:14px;color:var(--navy-2);line-height:1.6;margin:0}
+
+/* Takeaway */
+.takeaway{border-left:3px solid var(--navy);background:var(--panel);border-radius:0 3px 3px 0;padding:16px 20px;margin:20px 0}
+.takeaway.alert{border-left-color:var(--red)}
+.takeaway.win{border-left-color:var(--green)}
+.takeaway .t{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--navy);margin-bottom:6px}
+.takeaway.alert .t{color:var(--red)}.takeaway.win .t{color:var(--green)}
+.takeaway p{margin:0;font-size:14px;line-height:1.6;color:var(--navy-2)}
+.takeaway strong{color:var(--navy)}
+
+/* Report card */
+.report{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+@media(max-width:640px){.report{grid-template-columns:1fr}}
+.rc{display:flex;align-items:center;gap:15px;padding:15px 18px;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.rc:nth-child(-n+2){border-top:none}
+.rc:nth-child(odd){border-left:none}
+@media(max-width:640px){.rc{border-left:none}.rc:nth-child(2){border-top:1px solid var(--line)}}
+.grade{font-family:var(--serif);font-size:19px;font-weight:700;width:42px;height:42px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:3px;color:#fff}
+.g-a{background:var(--green)}.g-b{background:#3E7C8C}.g-c{background:var(--amber)}.g-d{background:var(--red)}
+.rc .t{font-size:13.5px;font-weight:700;color:var(--navy)}
+.rc .d{font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+
+/* Two-column argument */
+.argcols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:6px}
+@media(max-width:680px){.argcols{grid-template-columns:1fr}}
+.argbox{border:1px solid var(--line);border-top:3px solid var(--green);border-radius:3px;padding:16px 18px}
+.argbox.con{border-top-color:var(--red)}
+.argbox h4{margin:0 0 9px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--green)}
+.argbox.con h4{color:var(--red)}
+.argbox p{margin:0;font-size:13.5px;line-height:1.6;color:var(--navy-2)}
+.argbox strong{color:var(--navy)}
+.fine{font-size:11.5px;color:var(--slate-2);font-style:italic;margin-top:11px}
+ul.clean{margin:0;padding-left:18px;font-size:13.5px;color:var(--navy-2);line-height:1.7}
+ul.clean li{margin-bottom:6px}
+ul.clean strong{color:var(--navy)}
+
+/* Roadmap */
+.horizon{display:flex;gap:0;margin:2px 0 20px;border:1px solid var(--line-2);border-radius:3px;overflow:hidden;width:fit-content;max-width:100%;flex-wrap:wrap}
+.hbtn{border:none;border-left:1px solid var(--line-2);background:#fff;font:inherit;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--slate-2);padding:11px 18px;cursor:pointer}
+.hbtn:first-child{border-left:none}
+.hbtn:hover{color:var(--navy)}
+.hbtn.active{background:var(--navy);color:#fff}
+.horizon-meta{font-size:13.5px;color:var(--muted);margin-bottom:16px;font-style:italic;line-height:1.5}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+@media(max-width:680px){.actions{grid-template-columns:1fr}}
+.act{padding:16px 18px;border-top:1px solid var(--line);border-left:1px solid var(--line);position:relative}
+.act:nth-child(-n+2){border-top:none}
+.act:nth-child(odd){border-left:none}
+@media(max-width:680px){.act{border-left:none}.act:nth-child(2){border-top:1px solid var(--line)}}
+.act .tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-2)}
+.act.metro .tag{color:#5B6C9E}.act.bus .tag{color:var(--blue)}.act.sys .tag{color:var(--green)}
+.act h4{font-family:var(--serif);margin:6px 0 5px;font-size:15px;font-weight:700;color:var(--navy)}
+.act p{margin:0;font-size:12.8px;color:var(--muted);line-height:1.5}
+
+/* tables */
+.gridjs-wrapper{box-shadow:none!important;border:1px solid var(--line)!important;border-radius:3px;overflow:hidden}
+table.gridjs-table{font-size:13px;width:100%;border-collapse:collapse}
+th.gridjs-th{background:var(--navy);color:#fff;font-weight:700;text-align:left;padding:11px 13px;border:none;cursor:pointer;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+th.gridjs-th .gridjs-th-content{float:left}
+td.gridjs-td{padding:10px 13px;border-bottom:1px solid var(--line);color:var(--navy-2)}
+tr.gridjs-tr:last-child td{border-bottom:none}
+tr.gridjs-tr:hover td{background:var(--cyan-soft)}
+.gridjs-sort{background:none;border:none;cursor:pointer;width:12px;height:12px;float:right;opacity:.55}
+.gridjs-footer,.gridjs-head{display:none}
+
+.disclaimer{font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px 16px;margin-top:18px;line-height:1.55}
+.disclaimer b{color:var(--navy)}
+footer{margin-top:20px;font-size:11.5px;color:var(--slate-2);border-top:1px solid var(--line);padding-top:16px;line-height:1.6}
+footer a{color:var(--blue);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="topbar"><i></i></div>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Bengaluru Mobility · Strategic Performance Review</div>
+  <h1 class="title">Moving Bengaluru: How the Metro and Bus Network Actually Perform</h1>
+  <div class="standfirst">A fact base on Namma Metro and BMTC — benchmarked against India's major cities and comparable emerging-economy megacities — with the capital, affordability and policy choices that follow, and a phased plan for action.</div>
+  <div class="meta-rule">
+    <span>Focus <b>Bengaluru</b></span><span>·</span>
+    <span>Indian peers <b>Delhi · Mumbai · Hyderabad · Chennai</b></span><span>·</span>
+    <span>Global peers <b>Jakarta · Bogotá · Bangkok · Manila</b></span>
+  </div>
+</header>
+
+<div class="exec">
+  <div class="lbl">The bottom line</div>
+  <p>Bengaluru runs <strong>India's best bus system</strong> — largest fleet, highest utilisation, lowest losses — yet it has given those buses <strong>no dedicated road space</strong>, while a 96 km metro spine struggles to cover a sprawling 1.4-crore city. Public-transport mode share (~32%) is slipping as private vehicles surge. The highest-impact, lowest-cost move — proven in Jakarta and Bogotá — is <strong>Bus Rapid Transit</strong>, at roughly one-fortieth the cost per km of metro. And the free-bus debate, properly read, is not "free vs paid" but <strong>who funds the subsidy and whether service investment is protected.</strong></p>
+</div>
+
+<nav class="nav" role="tablist">
+  <button class="tab active" data-tab="score"><span class="n">01</span> Scorecard</button>
+  <button class="tab" data-tab="metro"><span class="n">02</span> Metro</button>
+  <button class="tab" data-tab="bus"><span class="n">03</span> Bus</button>
+  <button class="tab" data-tab="global"><span class="n">04</span> Global</button>
+  <button class="tab" data-tab="finance"><span class="n">05</span> Capex &amp; Affordability</button>
+  <button class="tab" data-tab="roadmap"><span class="n">06</span> Roadmap</button>
+</nav>
+
+<!-- ============ SCORECARD ============ -->
+<section class="panel active" id="score">
+  <div class="stats">
+    <div class="stat b"><div class="top"></div><div class="num">~10 lakh</div><div class="lbl">Namma Metro riders / day</div><div class="ctx">96 km · 83 stations · 3rd-largest in India</div></div>
+    <div class="stat g"><div class="top"></div><div class="num">~44 lakh</div><div class="lbl">BMTC bus riders / day</div><div class="ctx">7,000+ buses — India's largest city fleet</div></div>
+    <div class="stat a"><div class="top"></div><div class="num">~32%</div><div class="lbl">trips by public transport</div><div class="ctx">Slipping as private vehicles surge</div></div>
+    <div class="stat r"><div class="top"></div><div class="num">0 km</div><div class="lbl">dedicated Bus Rapid Transit</div><div class="ctx">Jakarta 251 km · Bogotá 114 km</div></div>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 1 · Assessment</div>
+    <h3>A strong bus core, undercut by road space, reach and integration gaps</h3>
+    <p class="sub">An editorial grading by this review, grounded in the data that follows — a debate-starter, not an official score.</p>
+    <div class="report">
+      <div class="rc"><div class="grade g-b">B+</div><div><div class="t">Bus efficiency</div><div class="d">India's best-run, most-utilised, least-loss fleet (91% utilisation)</div></div></div>
+      <div class="rc"><div class="grade g-b">B</div><div><div class="t">Bus coverage</div><div class="d">Only major Indian city meeting the 40–60 buses/lakh norm (~50)</div></div></div>
+      <div class="rc"><div class="grade g-c">C+</div><div><div class="t">Metro reach</div><div class="d">Growing fast, but 96 km is small for a 1.4-crore sprawling city</div></div></div>
+      <div class="rc"><div class="grade g-d">D</div><div><div class="t">Last-mile &amp; integration</div><div class="d">Fragmented fares/ticketing; weak feeder access to stations</div></div></div>
+      <div class="rc"><div class="grade g-d">D+</div><div><div class="t">Road space for transit</div><div class="d">No true BRT corridor; buses stuck in mixed traffic</div></div></div>
+      <div class="rc"><div class="grade g-c">C</div><div><div class="t">Mode-share trend</div><div class="d">~32% PT and slipping; +7.22 lakh vehicles added in 2024–25</div></div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 2 · Mode share</div>
+      <h3>Public transport carries under a third of trips</h3>
+      <p class="sub">Share of daily trips by mode. Private two-wheelers and cars together (~34%) already exceed public transport and are rising.</p>
+      <div class="chart-box"><canvas id="modeChart"></canvas></div>
+      <p class="src">Source: RITES study basis, via Transport in Bengaluru.</p>
+    </div>
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 3 · Benchmark</div>
+      <h3>Mid-pack today — and without a stretch target</h3>
+      <p class="sub">Bengaluru is ahead of pre-reform Jakarta but behind Delhi and Bogotá. Jakarta's 60% target for 2029 marks the ambition gap.</p>
+      <div class="chart-box"><canvas id="modeCompareChart"></canvas></div>
+      <p class="src">Sources: city transport authorities; Asian Transport Observatory.</p>
+    </div>
+  </div>
+
+  <div class="takeaway win">
+    <div class="t">The strength to build on</div>
+    <p>Bengaluru already runs <strong>India's best bus system</strong> — biggest fleet, highest utilisation, lowest losses, and the only major city meeting the national bus-per-population norm. The opportunity is to give that fleet <strong>dedicated road space and a growing metro spine</strong>, exactly what comparable global cities did to leap ahead.</p>
+  </div>
+</section>
+
+<!-- ============ METRO ============ -->
+<section class="panel" id="metro">
+  <div class="stats">
+    <div class="stat b"><div class="top"></div><div class="num">96.1 km</div><div class="lbl">operational network (2026)</div><div class="ctx">83 stations · 3 lines</div></div>
+    <div class="stat g"><div class="top"></div><div class="num">10.48 L</div><div class="lbl">single-day ridership record</div><div class="ctx">Aug 2025, after the Yellow Line opened</div></div>
+    <div class="stat b"><div class="top"></div><div class="num">75.3 km</div><div class="lbl">Phase 2 under construction</div><div class="ctx">62 stations · ₹40,425 cr</div></div>
+    <div class="stat a"><div class="top"></div><div class="num">Net loss</div><div class="lbl">BMRCL bottom line</div><div class="ctx">Operating profit, but finance &amp; depreciation dominate</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 4 · Ridership</div>
+      <h3>Clear #2 in India — but Delhi is in another league</h3>
+      <p class="sub">Daily ridership, lakh passengers, latest available. Bengaluru moved to a firm second place after the Yellow Line.</p>
+      <div class="chart-box"><canvas id="metroRideChart"></canvas></div>
+      <p class="src">Sources: Namma Metro; Urban rail transit in India.</p>
+    </div>
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 5 · Efficiency</div>
+      <h3>Each kilometre is well-used — the limit is reach, not demand</h3>
+      <p class="sub">Approx. riders/day per km of network (ridership ÷ length). Bengaluru beats Hyderabad and Chennai; trails Delhi.</p>
+      <div class="chart-box"><canvas id="metroEffChart"></canvas></div>
+      <p class="src">Source: derived from ridership and route-length data (approximate).</p>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="t">What the numbers say</div>
+    <p>Namma Metro's per-km productivity is healthy, so the constraint is <strong>reach, not demand</strong>. At 96 km for a 1.4-crore metropolis, most of the city is still beyond walking distance of a station. The fix is faster Phase 2/3 build-out <strong>plus</strong> strong feeder buses — a station 4 km from home isn't a usable station.</p>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 6 · Metro scorecard</div>
+    <h3>Network, ridership and per-km efficiency at a glance</h3>
+    <p class="sub">Click any column to sort. Ridership latest available; per-km is approximate (ridership ÷ route length).</p>
+    <div id="metroTable"></div>
+    <p class="src">Sources: <a href="https://en.wikipedia.org/wiki/Namma_Metro" target="_blank">Namma Metro</a> · <a href="https://citizenmatters.in/india-metro-rail-systems-bengaluru-chennai-delhi/" target="_blank">Citizen Matters</a> · <a href="https://en.wikipedia.org/wiki/Urban_rail_transit_in_India" target="_blank">Urban rail transit in India</a>.</p>
+  </div>
+</section>
+
+<!-- ============ BUS ============ -->
+<section class="panel" id="bus">
+  <div class="stats">
+    <div class="stat g"><div class="top"></div><div class="num">7,000+</div><div class="lbl">buses in the BMTC fleet</div><div class="ctx">India's largest metropolitan bus system</div></div>
+    <div class="stat g"><div class="top"></div><div class="num">~50</div><div class="lbl">buses per lakh population</div><div class="ctx">Only major Indian city meeting the 40–60 norm</div></div>
+    <div class="stat b"><div class="top"></div><div class="num">1,568</div><div class="lbl">electric buses (~1 in 5)</div><div class="ctx">~61,000 trips · 11.9 lakh km daily</div></div>
+    <div class="stat g"><div class="top"></div><div class="num">91%</div><div class="lbl">fleet utilisation</div><div class="ctx">Best among India's metro bus systems</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 7 · Coverage</div>
+      <h3>The only major city that clears the fleet-size norm</h3>
+      <p class="sub">National norm is 40–60 buses per lakh people (60 for cities &gt;20 lakh). Bengaluru just clears it; Delhi and Mumbai fall well short.</p>
+      <div class="chart-box"><canvas id="busNormChart"></canvas></div>
+      <p class="src">Sources: MoHUA norm; IndiaSpend analysis of metro bus systems.</p>
+    </div>
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 8 · Electrification</div>
+      <h3>About one in five buses is now electric</h3>
+      <p class="sub">~22% of the fleet runs on electricity, with more e-buses on order — one of India's faster transitions.</p>
+      <div class="chart-box"><canvas id="busEvChart"></canvas></div>
+      <p class="src">Source: BMTC; Sustainable Bus.</p>
+    </div>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 8b · Ridership · NEW (wired via data pipeline)</div>
+    <h3>Collapse, then a record recovery — the Shakti effect</h3>
+    <p class="sub">BMTC daily ridership (lakh passengers). After the COVID collapse, ridership rebounded past pre-pandemic levels to record highs following the free-travel scheme.</p>
+    <div class="chart-box"><canvas id="busTrendChart"></canvas></div>
+    <p class="src">Source: <a href="https://data.opencity.in/dataset/bmtc-operation-performance-data" target="_blank">OpenCity — BMTC performance data</a> / CAG · <a href="https://www.deccanherald.com/india/karnataka/bengaluru/shakti-scheme-powers-bmtc-s-passenger-numbers-3604734" target="_blank">Deccan Herald</a>. New source threaded through the project pipeline; live-ready via the OpenCity CKAN API.</p>
+  </div>
+
+  <div class="takeaway win">
+    <div class="t">Genuinely India's best bus system…</div>
+    <p>Largest fleet, highest utilisation (91%), lowest financial losses among India's eight big-city bus operators, and compliant with the fleet-size norm. BMTC moves <strong>~44 lakh people a day</strong> — far more than the metro.</p>
+  </div>
+  <div class="takeaway alert">
+    <div class="t">…but starved of road space and scale</div>
+    <p>Those buses crawl in the same gridlock as cars: Bengaluru has <strong>essentially no dedicated BRT corridor</strong>, only limited bus-priority pilots. And ~50 buses/lakh is the floor of the norm for a city this size and this fast-growing. The cheapest, fastest mobility win available is <strong>more buses on protected lanes</strong>.</p>
+  </div>
+</section>
+
+<!-- ============ GLOBAL ============ -->
+<section class="panel" id="global">
+  <div class="exhibit">
+    <div class="ex-lbl">Context · Comparator set</div>
+    <h3>Benchmarked against peer emerging-economy megacities</h3>
+    <p class="intro-note">Compared with fast-growing cities of broadly comparable size, income and motorisation pressure — not rich-world systems like London or Tokyo. <strong>Jakarta</strong> and <strong>Bogotá</strong> show what's achievable; <strong>Manila</strong> is the cautionary tale of under-investment.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat r"><div class="top"></div><div class="num">0 vs 251</div><div class="lbl">BRT km: Bengaluru vs Jakarta</div><div class="ctx">Jakarta runs the world's largest BRT network</div></div>
+    <div class="stat b"><div class="top"></div><div class="num">2.3 M</div><div class="lbl">daily riders on Bogotá's BRT alone</div><div class="ctx">On just 114 km of dedicated bus lanes</div></div>
+    <div class="stat a"><div class="top"></div><div class="num">25→60%</div><div class="lbl">Jakarta's PT mode-share target</div><div class="ctx">2019 → 2029; a goal Bengaluru lacks</div></div>
+    <div class="stat r"><div class="top"></div><div class="num">60 / 65</div><div class="lbl">Manila's mobility-readiness rank</div><div class="ctx">What under-investment + gridlock looks like</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 9 · Bus rapid transit</div>
+      <h3>Peers built 100–250 km of BRT; Bengaluru built none</h3>
+      <p class="sub">Trunk Bus Rapid Transit corridors with segregated lanes.</p>
+      <div class="chart-box"><canvas id="brtChart"></canvas></div>
+      <p class="src">Sources: TransJakarta; TransMilenio.</p>
+    </div>
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 10 · Mode share</div>
+      <h3>The issue is trajectory, not just today's level</h3>
+      <p class="sub">Bengaluru (~32%) is mid-pack — but peers are setting and chasing higher targets while it drifts toward private vehicles.</p>
+      <div class="chart-box"><canvas id="globalModeChart"></canvas></div>
+      <p class="src">Sources: city transport authorities; Asian Transport Observatory.</p>
+    </div>
+  </div>
+
+  <div class="takeaway alert">
+    <div class="t">The central lesson from abroad</div>
+    <p>Bengaluru runs more buses than any Indian city, yet — unlike Jakarta (251 km BRT, ~1M riders/day) or Bogotá (114 km BRT, ~2.3M riders/day) — it has never given those buses their own road. <strong>Bus Rapid Transit is the highest-impact, lowest-cost, fastest-to-build move</strong> in the world's most successful comparable cities, and the biggest gap in Bengaluru's plan.</p>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 11 · Global benchmark</div>
+    <h3>How the comparator cities stack up</h3>
+    <p class="sub">Figures are latest available and approximate; networks and ridership change frequently. Verify via source links before formal citation.</p>
+    <div id="globalTable"></div>
+    <p class="src">Sources: <a href="https://en.wikipedia.org/wiki/TransJakarta" target="_blank">TransJakarta</a> · <a href="https://en.wikipedia.org/wiki/TransMilenio" target="_blank">TransMilenio</a> · <a href="https://en.wikipedia.org/wiki/Manila_Metro_Rail_Transit_System" target="_blank">Manila MRT</a> · <a href="https://asiantransportobservatory.org/" target="_blank">Asian Transport Observatory</a>.</p>
+  </div>
+</section>
+
+<!-- ============ FINANCE ============ -->
+<section class="panel" id="finance">
+  <div class="stats">
+    <div class="stat r"><div class="top"></div><div class="num">₹541 cr</div><div class="lbl">capex per km — Metro</div><div class="ctx">₹40,614 cr for 75 km (Phase 2)</div></div>
+    <div class="stat b"><div class="top"></div><div class="num">₹106 cr</div><div class="lbl">capex per km — Suburban rail</div><div class="ctx">₹15,767 cr for 148 km</div></div>
+    <div class="stat g"><div class="top"></div><div class="num">~₹13.5 cr</div><div class="lbl">capex per km — BRT</div><div class="ctx">Ahmedabad Janmarg — ~40× cheaper than metro</div></div>
+    <div class="stat g"><div class="top"></div><div class="num">Lowest</div><div class="lbl">BMTC net losses since COVID</div><div class="ctx">During the Shakti free-bus years</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 12 · Unit cost</div>
+      <h3>Metro transforms — but it dwarfs every alternative</h3>
+      <p class="sub">Capital cost per km, ₹ crore (log scale). BRT delivers dedicated transit at a fraction of the price.</p>
+      <div class="chart-box"><canvas id="capexChart"></canvas></div>
+      <p class="src">Sources: BMRCL Phase 2; K-RIDE; Ahmedabad BRTS.</p>
+    </div>
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 13 · Trade-off</div>
+      <h3>One km of metro = ~5 km of rail, or ~40 km of BRT</h3>
+      <p class="sub">What ₹541 crore buys in each mode — the core capital-allocation choice Bengaluru faces.</p>
+      <div class="chart-box"><canvas id="buysChart"></canvas></div>
+      <p class="src">Source: derived from per-km capex figures above.</p>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="t">The financing reality</div>
+    <p>Metros are <strong>debt-financed</strong>: BMRCL earns an operating profit but posts net losses because interest and depreciation dominate. At ~₹541 cr/km, metro can only ever be the <strong>spine</strong>. The affordable, fast-to-build muscle around it — feeder buses and BRT — costs 20–40× less per km, yet attracts a fraction of the political attention and capital.</p>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 14 · The free-bus question</div>
+    <h3>Affordability at the end-user level — both sides of the debate</h3>
+    <p class="sub">Bengaluru's mobility politics now centres on the Karnataka <strong>Shakti scheme</strong> — free travel for women on ordinary buses since June 2023. Because this is genuinely contested, here is the case on each side, then what the data shows.</p>
+    <div class="argcols">
+      <div class="argbox">
+        <h4>The case for free / subsidised travel</h4>
+        <p>For a low-income worker, a daily round-trip can eat 5–10% of the day's wage — a real barrier to taking a job at all. Removing it expands access: supporters cite a reported <strong>23% rise in women's employment</strong> in Bengaluru, <strong>500+ crore free rides</strong>, and even <strong>₹300+ cr of extra GST</strong> from induced spending. Buses are the most progressive mode — those who depend on them have the fewest alternatives.</p>
+      </div>
+      <div class="argbox con">
+        <h4>The case against (as critics put it)</h4>
+        <p>Critics call it "<strong>revdi</strong>" (freebie) politics: it isn't means-tested, so wealthy women ride free while <strong>men — including poor men — pay full, now-hiked fares</strong>. They argue the money would do more good buying buses and raising frequency, and warn that subsidies which crowd out investment leave everyone with a worse, more crowded service.</p>
+      </div>
+    </div>
+    <p class="fine">These are the positions as their advocates would put them; the framing of the "against" case reflects critics' arguments, not this review's view.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 15 · Evidence</div>
+      <h3>Free travel did not sink BMTC's finances</h3>
+      <p class="sub">Government reimbursement as a share of BMTC revenue actually fell through the Shakti years — yet net losses hit their lowest since COVID as fare revenue recovered.</p>
+      <div class="chart-box"><canvas id="shaktiChart"></canvas></div>
+      <p class="src">Source: Citizen Matters analysis of BMTC accounts.</p>
+    </div>
+    <div class="exhibit">
+      <div class="ex-lbl">Exhibit 16 · Reading</div>
+      <h3>What the data supports — and what it doesn't</h3>
+      <p class="sub">A grounded reading that cuts across the politics:</p>
+      <ul class="clean">
+        <li>Free travel <strong>has not bankrupted BMTC</strong>: net losses are the lowest since COVID; traffic revenue is back to pre-pandemic levels.</li>
+        <li>But part of the bill is paid by a <strong>15% fare hike (Jan 2025) on everyone else</strong> — felt hardest by the ~40 lakh low-income daily riders.</li>
+        <li>The real failure is <strong>under-investment</strong>: ~25% fewer routes and ~20% fewer effective km than 2014–15; CAG found 64% of buses run just one schedule.</li>
+        <li>So the honest debate isn't "free vs paid" — it's <strong>"who funds the subsidy, and is service investment protected?"</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="takeaway win">
+    <div class="t">A financing design that squares the circle</div>
+    <p>Keep fares affordable <strong>and</strong> grow the system by separating the two budgets: (1) <strong>fund concessions explicitly from the state budget</strong> as a transparent line item — not out of BMTC's farebox or capital; (2) <strong>ring-fence investment</strong> via a dedicated Urban Transport Fund; (3) raise <strong>non-fare revenue</strong> — land value capture and TOD around stations, advertising, recaptured GST/parking. Affordability becomes a funded policy choice, not a hidden tax on the next commuter.</p>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 17 · Financing toolkit</div>
+    <h3>Mechanisms to fund affordable fares and network growth</h3>
+    <p class="sub">With how proven each is in India.</p>
+    <div id="financeTable"></div>
+    <p class="src">Sources: <a href="https://citizenmatters.in/shakti-scheme-bengaluru-bmtc-finances-women-free-bus-rides/" target="_blank">Citizen Matters — Shakti &amp; BMTC finances</a> · <a href="https://www.deccanherald.com/india/karnataka/bengaluru/bengaluru-metro-phase-2-delays-push-up-cost-by-rs-10000-cr-3307265" target="_blank">Metro Phase 2 cost</a> · <a href="https://en.wikipedia.org/wiki/Ahmedabad_Bus_Rapid_Transit_System" target="_blank">Ahmedabad BRT cost</a>.</p>
+  </div>
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section class="panel" id="roadmap">
+  <div class="exhibit">
+    <div class="ex-lbl">Exhibit 18 · Action plan</div>
+    <h3>A phased plan to lift mode share and ease congestion</h3>
+    <p class="sub">Pick a horizon. Actions are tagged <span style="color:#5B6C9E;font-weight:700">Metro</span>, <span style="color:var(--blue);font-weight:700">Bus</span>, or <span style="color:var(--green);font-weight:700">System-wide</span>.</p>
+    <div class="horizon">
+      <button class="hbtn active" data-h="y1">1 Year · Quick wins</button>
+      <button class="hbtn" data-h="y3">3 Years · Build-out</button>
+      <button class="hbtn" data-h="lt">Long-term · Structural</button>
+    </div>
+    <div class="horizon-meta" id="horizonMeta"></div>
+    <div class="actions" id="actionGrid"></div>
+  </div>
+
+  <div class="takeaway">
+    <div class="t">The one target that ties it together</div>
+    <p>Adopt a binding, time-bound goal — <strong>50%+ of trips by public &amp; non-motorised transport</strong> — the way Jakarta committed to 60% by 2029. Publish progress on an open dashboard so citizens and the press can hold the city to it.</p>
+  </div>
+
+  <div class="exhibit">
+    <div class="ex-lbl">Grounding</div>
+    <h3>Anchored in initiatives already under way</h3>
+    <p class="intro-note">The roadmap builds on things already legislated or in motion: <strong>Metro Phase 2/3</strong>; the <strong>Bengaluru Suburban Rail Project</strong> (148 km, ₹15,767 cr via K-RIDE — 54.9 km under construction, delayed to ~2027 on land issues); the <strong>BMLTA</strong> unified-transport-authority law; rapid <strong>bus electrification</strong> (1,568 e-buses); and the Karnataka <strong>Shakti</strong> free-bus scheme that has boosted ridership. The gap is execution speed, road-space allocation, fare integration and a binding mode-share target.</p>
+  </div>
+</section>
+
+<div class="disclaimer">
+  <b>Data notes &amp; caveats.</b> Figures are the latest publicly available as of June 2026 and mix reference years (metro ridership 2024–25; BMTC fleet 2025; bus-per-lakh and utilisation from earlier baseline studies; international figures 2023–24). Ridership-per-km and some network lengths are approximate and computed from sources that may use different boundaries or dates. Mode-share figures derive from different studies and are indicative. The report-card grades are this review's editorial assessment to spark debate, not an official rating. Verify the cited source before using a number in formal advocacy.
+</div>
+
+<footer>
+  Moving Bengaluru — Metro &amp; Bus Performance Review · Built for civic awareness and action · Sources are public and attributable. Indian civic data: OpenCity / Citizen Matters (Oorvani Foundation). International data: city transit authorities, Asian Transport Observatory.
+</footer>
+</div>
+
+<script>
+/* @data:DATA  — generated from data/metrics.json by pipeline/build.js. Edit metrics.json, not here. */
+const DATA = {
+  "mode": {
+    "labels": [
+      "Public transport",
+      "Two-wheeler",
+      "Walk / cycle",
+      "Car",
+      "Auto / other"
+    ],
+    "values": [
+      32,
+      27,
+      26,
+      7,
+      8
+    ],
+    "colors": [
+      "#051C2C",
+      "#1463A8",
+      "#00A1D6",
+      "#8B9AA5",
+      "#C9D2D9"
+    ]
+  },
+  "modeCompare": {
+    "cities": [
+      "Delhi",
+      "Bogotá",
+      "Bengaluru",
+      "Bangkok",
+      "Jakarta (2019)"
+    ],
+    "values": [
+      50,
+      35,
+      32,
+      40,
+      25
+    ]
+  },
+  "metroRide": {
+    "cities": [
+      "Delhi",
+      "Bengaluru",
+      "Mumbai",
+      "Hyderabad",
+      "Chennai"
+    ],
+    "values": [
+      65,
+      10,
+      8.5,
+      4.7,
+      3.19
+    ]
+  },
+  "metroEff": {
+    "cities": [
+      "Delhi",
+      "Bengaluru",
+      "Hyderabad",
+      "Chennai"
+    ],
+    "values": [
+      16500,
+      10400,
+      6800,
+      5900
+    ]
+  },
+  "busNorm": {
+    "cities": [
+      "Bengaluru",
+      "Delhi",
+      "Mumbai"
+    ],
+    "values": [
+      50,
+      45,
+      21.6
+    ]
+  },
+  "busEv": {
+    "labels": [
+      "Electric",
+      "Diesel / CNG"
+    ],
+    "values": [
+      1568,
+      5432
+    ],
+    "colors": [
+      "#1C7A52",
+      "#C9D2D9"
+    ]
+  },
+  "brt": {
+    "cities": [
+      "Jakarta",
+      "Bogotá",
+      "Bengaluru"
+    ],
+    "values": [
+      251,
+      114,
+      0
+    ]
+  },
+  "globalMode": {
+    "cities": [
+      "Delhi",
+      "Bangkok",
+      "Bogotá",
+      "Bengaluru",
+      "Jakarta"
+    ],
+    "values": [
+      50,
+      40,
+      35,
+      32,
+      25
+    ]
+  },
+  "capex": {
+    "modes": [
+      "Metro",
+      "Suburban rail",
+      "BRT"
+    ],
+    "values": [
+      541,
+      106,
+      13.5
+    ]
+  },
+  "buys": {
+    "modes": [
+      "Metro",
+      "Suburban rail",
+      "BRT"
+    ],
+    "km": [
+      1,
+      5.1,
+      40
+    ]
+  },
+  "shakti": {
+    "years": [
+      "FY22-23 (pre-Shakti)",
+      "FY23-24 (Shakti)",
+      "FY24-25 (Shakti)"
+    ],
+    "reimb": [
+      40,
+      16,
+      14
+    ]
+  },
+  "busRidership": {
+    "periods": ["Pre-COVID (2017–20)", "COVID (2020–22)", "Post-Shakti (2024–25)"],
+    "lakh": [37.5, 14.4, 45.5],
+    "asOf": "2025",
+    "source": "OpenCity / CAG / Deccan Herald"
+  }
+};
+/* @end:DATA */
+
+/* @data:ROADMAP  — generated from data/metrics.json by pipeline/build.js. */
+const ROADMAP = {
+  "y1": {
+    "meta": "Low-capex moves deliverable within ~12 months — mostly operations, road-space reallocation and integration.",
+    "items": [
+      {
+        "c": "bus",
+        "h": "Add 1,500–2,500 buses, focused on feeders",
+        "p": "Prioritise routes that feed metro stations and underserved peripheries, pushing toward the upper end of the buses-per-lakh norm."
+      },
+      {
+        "c": "bus",
+        "h": "Bus-priority lanes on the 10 worst corridors",
+        "p": "Paint-and-bollard priority lanes on ORR, Whitefield, Hosur Rd — the cheapest way to speed up 44 lakh daily bus trips."
+      },
+      {
+        "c": "sys",
+        "h": "One card, one fare, timed transfers",
+        "p": "Integrate BMTC + metro ticketing and fares so a bus-to-metro trip is seamless and not double-charged."
+      },
+      {
+        "c": "sys",
+        "h": "Real-time tracking + open data",
+        "p": "Citywide live bus tracking and published open GTFS feeds, plus a public reliability/punctuality dashboard."
+      },
+      {
+        "c": "metro",
+        "h": "More peak capacity + park-and-ride",
+        "p": "Six-car trains and tighter peak headways; cycle docks and park-and-ride at every station to fix last-mile access."
+      },
+      {
+        "c": "sys",
+        "h": "Operationalise the BMLTA",
+        "p": "Give the legislated unified metropolitan transport authority real budget, staff and decision power over all modes."
+      }
+    ]
+  },
+  "y3": {
+    "meta": "Capital build-out over ~2–4 years — network expansion, electrification and a true rapid-bus backbone.",
+    "items": [
+      {
+        "c": "metro",
+        "h": "Finish Phase 2 → ~170 km network",
+        "p": "Complete the 75 km Phase 2 and target 20–25 lakh daily metro riders; begin Phase 3 (ORR & airport corridors)."
+      },
+      {
+        "c": "bus",
+        "h": "Build a real BRT backbone",
+        "p": "Create Bengaluru's first segregated BRT trunk corridors — the Jakarta/Bogotá move the city has never made."
+      },
+      {
+        "c": "bus",
+        "h": "Fleet to 10,000–12,000, mostly electric",
+        "p": "Scale and electrify the fleet with new depots and charging; aim for a majority-electric bus system."
+      },
+      {
+        "c": "sys",
+        "h": "Distance-based unified fares",
+        "p": "Single distance-based fare across bus + metro + suburban rail, with monthly passes and concessions."
+      },
+      {
+        "c": "sys",
+        "h": "Open suburban-rail corridors 2 & 4",
+        "p": "Push the 54.9 km under construction to operation; unblock land acquisition that has stalled the project."
+      },
+      {
+        "c": "metro",
+        "h": "TOD + value capture at stations",
+        "p": "Transit-oriented zoning and land-value capture around stations to densify ridership and help fund transit."
+      }
+    ]
+  },
+  "lt": {
+    "meta": "Structural, 5–10+ year transformation — a mature, integrated, financially self-sustaining network.",
+    "items": [
+      {
+        "c": "metro",
+        "h": "Metro network 175+ km",
+        "p": "Complete Phase 3/3A so most of the metropolitan area is within walking distance of frequent rail."
+      },
+      {
+        "c": "sys",
+        "h": "Full 148 km suburban rail operational",
+        "p": "A completed commuter-rail spine integrated with metro and bus for regional trips."
+      },
+      {
+        "c": "sys",
+        "h": "50%+ public + non-motorised mode share",
+        "p": "A binding, time-bound target that reverses private-vehicle dominance — Bengaluru's version of Jakarta's 60%/2029 goal."
+      },
+      {
+        "c": "sys",
+        "h": "TOD-led, walkable land use",
+        "p": "Dense, mixed-use, walkable development along every transit corridor — transit shapes the city, not the other way round."
+      },
+      {
+        "c": "sys",
+        "h": "Self-sustaining transit finance",
+        "p": "A dedicated Urban Transport Fund plus value capture and non-fare revenue, so service isn't hostage to annual budgets."
+      },
+      {
+        "c": "bus",
+        "h": "Zero-emission fleet + 500 m access",
+        "p": "100% electric buses and a service standard that every resident is within 500 m of frequent public transport."
+      }
+    ]
+  }
+};
+/* @end:ROADMAP */
+
+// palette
+const NAVY="#051C2C", BLUE="#1463A8", CYAN="#00A1D6", SLATE="#B9C4CD", SLATEX="#D3DADF",
+      RED="#B23A20", GREEN="#1C7A52", AMBER="#B5810F", TICK="#5E6E79", GRID="#EDF1F3";
+const charts={}, built={};
+const fmt=n=>n==null?"—":n.toLocaleString("en-IN");
+
+function barOpts(extra){return Object.assign({responsive:true,maintainAspectRatio:false,
+  font:{family:"Helvetica,Arial,sans-serif"},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,padding:10,titleFont:{size:12},bodyFont:{size:12}}},
+  scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:11}}},
+          y:{beginAtZero:true,grid:{color:GRID},border:{display:false},ticks:{color:TICK,font:{size:11}}}}},extra||{});}
+// highlight focal city in CYAN, others in SLATE
+function hl(cities,focal){return cities.map(c=>c===focal?CYAN:SLATE);}
+
+function buildScore(){
+  if(built.score)return; built.score=true;
+  const m=DATA.mode;
+  charts.mode=new Chart(document.getElementById("modeChart"),{type:"doughnut",
+    data:{labels:m.labels,datasets:[{data:m.values,backgroundColor:m.colors,borderWidth:2,borderColor:"#fff"}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"60%",
+      plugins:{legend:{position:"right",labels:{boxWidth:11,font:{size:11.5},color:NAVY}},
+        tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.label+": "+c.parsed+"%"}}}}});
+  const mc=DATA.modeCompare;
+  charts.modeCmp=new Chart(document.getElementById("modeCompareChart"),{type:"bar",
+    data:{labels:mc.cities,datasets:[{data:mc.values,backgroundColor:hl(mc.cities,"Bengaluru"),borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.parsed.y+"% of trips"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:10.5}}},
+        y:{beginAtZero:true,max:60,grid:{color:GRID},border:{display:false},title:{display:true,text:"% public transport",color:TICK,font:{size:11}},ticks:{color:TICK}}}})});
+}
+
+function buildMetro(){
+  if(built.metro)return; built.metro=true;
+  const r=DATA.metroRide;
+  charts.mRide=new Chart(document.getElementById("metroRideChart"),{type:"bar",
+    data:{labels:r.cities,datasets:[{data:r.values,backgroundColor:hl(r.cities,"Bengaluru"),borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.parsed.y+" lakh/day"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:11}}},
+        y:{beginAtZero:true,grid:{color:GRID},border:{display:false},title:{display:true,text:"lakh passengers / day",color:TICK,font:{size:11}},ticks:{color:TICK}}}})});
+  const e=DATA.metroEff;
+  charts.mEff=new Chart(document.getElementById("metroEffChart"),{type:"bar",
+    data:{labels:e.cities,datasets:[{data:e.values,backgroundColor:hl(e.cities,"Bengaluru"),borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>fmt(c.parsed.y)+" riders/km/day"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:11}}},
+        y:{beginAtZero:true,grid:{color:GRID},border:{display:false},title:{display:true,text:"riders / route-km / day (approx)",color:TICK,font:{size:10.5}},ticks:{color:TICK}}}})});
+  const rows=[["Delhi",393,65,16500],["Bengaluru",96,10,10400],["Mumbai",50,8.5,17000],["Hyderabad",69,4.7,6800],["Chennai",54,3.19,5900]];
+  new gridjs.Grid({columns:[{name:"City"},{name:"Network km",formatter:c=>fmt(c)},{name:"Riders (lakh/day)",formatter:c=>c==null?"—":c},{name:"Riders/km/day (approx)",formatter:c=>fmt(c)}],
+    data:rows,sort:true,search:false}).render(document.getElementById("metroTable"));
+}
+
+function buildBus(){
+  if(built.bus)return; built.bus=true;
+  const n=DATA.busNorm;
+  charts.bNorm=new Chart(document.getElementById("busNormChart"),{type:"bar",
+    data:{labels:n.cities,datasets:[{data:n.values,backgroundColor:hl(n.cities,"Bengaluru"),borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.parsed.y+" buses / lakh"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:11}}},
+        y:{beginAtZero:true,max:65,grid:{color:GRID},border:{display:false},title:{display:true,text:"buses per lakh (norm 40–60)",color:TICK,font:{size:10.5}},ticks:{color:TICK}}}})});
+  const e=DATA.busEv;
+  charts.bEv=new Chart(document.getElementById("busEvChart"),{type:"doughnut",
+    data:{labels:e.labels,datasets:[{data:e.values,backgroundColor:e.colors,borderWidth:2,borderColor:"#fff"}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"60%",
+      plugins:{legend:{position:"right",labels:{boxWidth:11,font:{size:12},color:NAVY}},
+        tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.label+": "+fmt(c.parsed)+" buses"}}}}});
+  const tr=DATA.busRidership;
+  if(tr){
+    charts.bTrend=new Chart(document.getElementById("busTrendChart"),{type:"bar",
+      data:{labels:tr.periods,datasets:[{data:tr.lakh,backgroundColor:[SLATE,RED,CYAN],borderRadius:1}]},
+      options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.parsed.y+" lakh/day"}}},
+        scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:11}}},
+          y:{beginAtZero:true,grid:{color:GRID},border:{display:false},title:{display:true,text:"lakh passengers / day",color:TICK,font:{size:10.5}},ticks:{color:TICK}}}})});
+  }
+}
+
+function buildGlobal(){
+  if(built.global)return; built.global=true;
+  const b=DATA.brt;
+  charts.brt=new Chart(document.getElementById("brtChart"),{type:"bar",
+    data:{labels:b.cities,datasets:[{data:b.values,backgroundColor:hl(b.cities,"Bengaluru"),borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.parsed.y+" km of BRT"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:12}}},
+        y:{beginAtZero:true,grid:{color:GRID},border:{display:false},title:{display:true,text:"dedicated BRT km",color:TICK,font:{size:11}},ticks:{color:TICK}}}})});
+  const g=DATA.globalMode;
+  charts.gMode=new Chart(document.getElementById("globalModeChart"),{type:"bar",
+    data:{labels:g.cities,datasets:[{data:g.values,backgroundColor:hl(g.cities,"Bengaluru"),borderRadius:1}]},
+    options:barOpts({indexAxis:"y",plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:c=>c.parsed.x+"% public transport"}}},
+      scales:{x:{beginAtZero:true,max:60,grid:{color:GRID},border:{display:false},title:{display:true,text:"% trips by public transport",color:TICK,font:{size:11}},ticks:{color:TICK}},
+        y:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:12}}}}})});
+  const rows=[
+    ["Bengaluru","~96","~0","~32%","India's best buses, but no dedicated BRT"],
+    ["Jakarta","~32","251","25% → 60% target","World's largest BRT; bold mode-share target"],
+    ["Bogotá","Building","114","~35%","BRT carries ~2.3M/day at low cost"],
+    ["Bangkok","~210","16","~40% access","Rail-heavy; BRT minimal"],
+    ["Manila","~50","~0","Informal-heavy","Cautionary: under-investment → gridlock"]
+  ];
+  new gridjs.Grid({columns:["City","Metro/MRT km","BRT km","PT mode share","Key lesson"],
+    data:rows,sort:true,search:false}).render(document.getElementById("globalTable"));
+}
+
+function buildFinance(){
+  if(built.finance)return; built.finance=true;
+  const c=DATA.capex;
+  charts.capex=new Chart(document.getElementById("capexChart"),{type:"bar",
+    data:{labels:c.modes,datasets:[{data:c.values,backgroundColor:[RED,BLUE,GREEN],borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:x=>"₹"+x.parsed.y+" crore / km"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:12}}},
+        y:{beginAtZero:true,grid:{color:GRID},border:{display:false},title:{display:true,text:"₹ crore per km (log scale)",color:TICK,font:{size:11}},
+          type:"logarithmic",ticks:{color:TICK,callback:v=>([1,10,100,1000].includes(v)?"₹"+v:null)}}}})});
+  const b=DATA.buys;
+  charts.buys=new Chart(document.getElementById("buysChart"),{type:"bar",
+    data:{labels:b.modes,datasets:[{data:b.km,backgroundColor:[RED,BLUE,GREEN],borderRadius:1}]},
+    options:barOpts({indexAxis:"y",plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:x=>x.parsed.x+" km for the price of 1 km of metro"}}},
+      scales:{x:{beginAtZero:true,grid:{color:GRID},border:{display:false},title:{display:true,text:"km built for ₹541 crore",color:TICK,font:{size:11}},ticks:{color:TICK}},
+        y:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:12}}}}})});
+  const s=DATA.shakti;
+  charts.shakti=new Chart(document.getElementById("shaktiChart"),{type:"bar",
+    data:{labels:s.years,datasets:[{data:s.reimb,backgroundColor:[SLATE,CYAN,CYAN],borderRadius:1}]},
+    options:barOpts({plugins:{legend:{display:false},tooltip:{backgroundColor:NAVY,callbacks:{label:x=>x.parsed.y+"% of BMTC revenue from govt reimbursement"}}},
+      scales:{x:{grid:{display:false},border:{color:SLATEX},ticks:{color:TICK,font:{size:10.5}}},
+        y:{beginAtZero:true,max:45,grid:{color:GRID},border:{display:false},title:{display:true,text:"govt reimbursement (% of revenue)",color:TICK,font:{size:10.5}},ticks:{color:TICK}}}})});
+  const rows=[
+    ["State budget line for concessions","Fund free/discounted travel transparently, not from BMTC's farebox","High — used across states, needs ring-fencing"],
+    ["Dedicated Urban Transport Fund","Pooled, protected capital for buses, BRT, last-mile","Medium — recommended, patchily adopted"],
+    ["Land value capture / TOD","Monetise rising land v
